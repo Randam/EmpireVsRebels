@@ -6,7 +6,7 @@
         music: Phaser.Sound;
         rebels: Phaser.Group;
         empire: Phaser.Group;
-        unit: Phaser.Sprite;
+        unit: Player;
         bullets: Phaser.Group;
 
         create() {
@@ -17,7 +17,7 @@
             this.bullets = this.add.group();
             this.bullets.enableBody = true;
             this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-            this.bullets.createMultiple(30, 'bullet');
+            this.bullets.createMultiple(100, 'bullet');
             this.bullets.setAll('anchor.x', 0.5);
             this.bullets.setAll('anchor.y', 0.5);
             this.bullets.setAll('outOfBoundsKill', true);
@@ -36,11 +36,23 @@
 
         update() {
             if (this.game.input.keyboard.isDown(Phaser.Keyboard.DELETE)) {
-                this.unit.kill();
                 this.unit = this.empire.getFirstExists(false, true);
                 this.unit.reset(this.world.width - 1, Math.floor(Math.random() * this.world.height - 1) + 1);
                 this.unit.anchor.setTo(0.5);
                 this.unit.name = "Jeroen Derwort";
+                let destinationX: number = Math.floor(this.world.width * 0.75 + Math.random() * this.world.width * 0.25);
+                let destinationY: number = Math.floor(Math.random() * this.world.height - 1) + 1;
+                this.unit.destination = new Phaser.Point(destinationX, destinationY); 
+            }
+
+            if (this.game.input.keyboard.isDown(Phaser.Keyboard.INSERT)) {
+                this.unit = this.rebels.getFirstExists(false, true);
+                this.unit.reset(1, Math.floor(Math.random() * this.world.height - 1) + 1);
+                this.unit.anchor.setTo(0.5);
+                this.unit.name = "Annemarie Derwort-Steinvoort";
+                let destinationX: number = Math.floor(Math.random() * this.world.width * 0.25) + 1;
+                let destinationY: number = Math.floor(Math.random() * this.world.height - 1) + 1;
+                this.unit.destination = new Phaser.Point(destinationX, destinationY);
             }
         }
 
