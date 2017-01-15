@@ -1,0 +1,268 @@
+{"frames": [
+
+{
+	"filename": "Mech1Walk_1x1.png",
+	"frame": {"x":1,"y":1,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_1x2.png",
+	"frame": {"x":65,"y":1,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_1x3.png",
+	"frame": {"x":1,"y":67,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_1x4.png",
+	"frame": {"x":65,"y":67,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_1x5.png",
+	"frame": {"x":1,"y":133,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_1x6.png",
+	"frame": {"x":65,"y":133,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_1x7.png",
+	"frame": {"x":1,"y":199,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_1x8.png",
+	"frame": {"x":65,"y":199,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_2x1.png",
+	"frame": {"x":1,"y":265,"w":38,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":13,"y":0,"w":38,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_2x2.png",
+	"frame": {"x":41,"y":265,"w":38,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":13,"y":0,"w":38,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_2x3.png",
+	"frame": {"x":81,"y":265,"w":41,"h":63},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":10,"y":1,"w":41,"h":63},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_2x4.png",
+	"frame": {"x":1,"y":331,"w":38,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":13,"y":0,"w":38,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_2x5.png",
+	"frame": {"x":41,"y":331,"w":38,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":13,"y":0,"w":38,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_2x6.png",
+	"frame": {"x":81,"y":331,"w":40,"h":63},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":12,"y":0,"w":40,"h":63},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_2x7.png",
+	"frame": {"x":1,"y":397,"w":40,"h":62},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":11,"y":1,"w":40,"h":62},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_2x8.png",
+	"frame": {"x":43,"y":397,"w":37,"h":63},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":13,"y":1,"w":37,"h":63},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_3x1.png",
+	"frame": {"x":1,"y":462,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_3x2.png",
+	"frame": {"x":65,"y":462,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_3x3.png",
+	"frame": {"x":1,"y":528,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_3x4.png",
+	"frame": {"x":65,"y":528,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_3x5.png",
+	"frame": {"x":1,"y":594,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_3x6.png",
+	"frame": {"x":65,"y":594,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_3x7.png",
+	"frame": {"x":1,"y":660,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_3x8.png",
+	"frame": {"x":65,"y":660,"w":62,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":0,"w":62,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_4x1.png",
+	"frame": {"x":1,"y":726,"w":38,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":13,"y":0,"w":38,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_4x2.png",
+	"frame": {"x":41,"y":726,"w":38,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":13,"y":0,"w":38,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_4x3.png",
+	"frame": {"x":81,"y":726,"w":41,"h":63},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":13,"y":1,"w":41,"h":63},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_4x4.png",
+	"frame": {"x":1,"y":792,"w":38,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":13,"y":0,"w":38,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_4x5.png",
+	"frame": {"x":41,"y":792,"w":38,"h":64},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":13,"y":0,"w":38,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_4x6.png",
+	"frame": {"x":81,"y":792,"w":40,"h":63},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":12,"y":0,"w":40,"h":63},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_4x7.png",
+	"frame": {"x":1,"y":858,"w":40,"h":62},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":13,"y":1,"w":40,"h":62},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "Mech1Walk_4x8.png",
+	"frame": {"x":43,"y":858,"w":37,"h":63},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":14,"y":1,"w":37,"h":63},
+	"sourceSize": {"w":64,"h":64}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "Mech1.png",
+	"format": "RGBA8888",
+	"size": {"w":128,"h":922},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:fd746616cf29733625f1769b1e27e9de:ffd3b70747fc9b2c8ca8fbe20919eec1:431c55498e768565223cefbdbeea7d5d$"
+}
+}
