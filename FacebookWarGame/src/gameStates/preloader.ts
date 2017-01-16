@@ -13,6 +13,7 @@
 
             this.load.atlasJSONArray('MechRebels', './assets/sprites/Mech1.png', './assets/sprites/Mech1.json');
             this.load.atlasJSONArray('MechEmpire', './assets/sprites/Mech2.png', './assets/sprites/Mech2.json');
+            this.load.atlasJSONArray('Explosion', './assets/sprites/explosion.png', './assets/sprites/explosion.json');
         }
 
         create() {

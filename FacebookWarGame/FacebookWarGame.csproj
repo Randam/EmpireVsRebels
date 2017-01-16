@@ -48,7 +48,8 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="src\game.ts" />
-    <TypeScriptCompile Include="src\gameLib\enums.ts" />
+    <TypeScriptCompile Include="src\gameLib\types.ts" />
+    <TypeScriptCompile Include="src\gameLib\mechLib.ts" />
     <TypeScriptCompile Include="src\gameObjects\player.ts" />
     <TypeScriptCompile Include="src\gameStates\boot.ts" />
     <TypeScriptCompile Include="src\gameStates\arena.ts" />

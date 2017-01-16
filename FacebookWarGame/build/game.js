@@ -35,6 +35,30 @@ var FacebookWarGame;
             Direction[Direction["Left"] = 4] = "Left";
         })(Client.Direction || (Client.Direction = {}));
         var Direction = Client.Direction;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
+        var mechLib = (function () {
+            function mechLib() {
+            }
+            mechLib.isRebels = function (faction) {
+                return (faction == 'Rebels');
+            };
+            mechLib.isEmpire = function (faction) {
+                return (faction == 'Empire');
+            };
+            return mechLib;
+        }());
+        Client.mechLib = mechLib;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
         var Player = (function (_super) {
             __extends(Player, _super);
             function Player(faction, game, x, y, bullets) {
@@ -64,28 +88,28 @@ var FacebookWarGame;
                 if (this.alive && this.x > 0 && this.y > 0) {
                     var mechSpeed = 80;
                     if (Math.floor(this.destination.x / mechSpeed) < Math.floor(this.x / mechSpeed)) {
-                        this.direction = Direction.Left;
+                        this.direction = Client.Direction.Left;
                         this.body.velocity.x = -mechSpeed;
                         this.body.velocity.y = 0;
                         if (!this.walkingSound.isPlaying)
                             this.walkingSound.play();
                     }
                     else if (Math.floor(this.destination.x / mechSpeed) > Math.floor(this.x / mechSpeed)) {
-                        this.direction = Direction.Right;
+                        this.direction = Client.Direction.Right;
                         this.body.velocity.x = mechSpeed;
                         this.body.velocity.y = 0;
                         if (!this.walkingSound.isPlaying)
                             this.walkingSound.play();
                     }
                     else if (Math.floor(this.destination.y / mechSpeed) < Math.floor(this.y / mechSpeed)) {
-                        this.direction = Direction.Up;
+                        this.direction = Client.Direction.Up;
                         this.body.velocity.x = 0;
                         this.body.velocity.y = -mechSpeed;
                         if (!this.walkingSound.isPlaying)
                             this.walkingSound.play();
                     }
                     else if (Math.floor(this.destination.y / mechSpeed) > Math.floor(this.y / mechSpeed)) {
-                        this.direction = Direction.Down;
+                        this.direction = Client.Direction.Down;
                         this.body.velocity.x = 0;
                         this.body.velocity.y = mechSpeed;
                         if (!this.walkingSound.isPlaying)
@@ -102,16 +126,16 @@ var FacebookWarGame;
                         this.nameLabel.text = this.name;
                     }
                     switch (this.direction) {
-                        case Direction.Up:
+                        case Client.Direction.Up:
                             this.animations.play('walk-up');
                             break;
-                        case Direction.Down:
+                        case Client.Direction.Down:
                             this.animations.play('walk-down');
                             break;
-                        case Direction.Left:
+                        case Client.Direction.Left:
                             this.animations.play('walk-left');
                             break;
-                        case Direction.Right:
+                        case Client.Direction.Right:
                             this.animations.play('walk-right');
                             break;
                     }
@@ -129,29 +153,29 @@ var FacebookWarGame;
                 if (this.game.time.now > this.bulletTime) {
                     //  Grab the first bullet we can from the pool
                     var bullet = this.bullets.getFirstExists(false);
-                    if (this.faction == 'Rebels')
-                        this.direction = Direction.Right;
-                    if (this.faction == 'Empire')
-                        this.direction = Direction.Left;
+                    if (Client.mechLib.isRebels(this.faction))
+                        this.direction = Client.Direction.Right;
+                    if (Client.mechLib.isEmpire(this.faction))
+                        this.direction = Client.Direction.Left;
                     if (bullet) {
                         //  And fire it
                         switch (this.direction) {
-                            case Direction.Up:
+                            case Client.Direction.Up:
                                 bullet.reset(this.x - 24, this.y - 24);
                                 bullet.body.velocity.y = -bulletSpeed;
                                 bullet.angle = 0;
                                 break;
-                            case Direction.Right:
+                            case Client.Direction.Right:
                                 bullet.reset(this.x + 10, this.y - 10);
                                 bullet.body.velocity.x = bulletSpeed;
                                 bullet.angle = 90;
                                 break;
-                            case Direction.Down:
+                            case Client.Direction.Down:
                                 bullet.reset(this.x + 24, this.y + 16);
                                 bullet.body.velocity.y = bulletSpeed;
                                 bullet.angle = 180;
                                 break;
-                            case Direction.Left:
+                            case Client.Direction.Left:
                                 bullet.reset(this.x - 10, this.y - 10);
                                 bullet.body.velocity.x = -bulletSpeed;
                                 bullet.angle = 270;
@@ -161,7 +185,7 @@ var FacebookWarGame;
                         this.bulletsToFire--;
                         if (this.bulletsToFire <= 0) {
                             this.bulletsToFire = Math.floor(Math.random() * 3) + 1;
-                            if (this.faction == 'Rebels') {
+                            if (Client.mechLib.isRebels(this.faction)) {
                                 this.destination = new Phaser.Point(Math.floor(Math.random() * this.game.world.width * 0.25) + 1, Math.floor(Math.random() * this.game.world.height - 1) + 1);
                             }
                             else {
@@ -225,18 +249,16 @@ var FacebookWarGame;
             Arena.prototype.create = function () {
                 this.physics.startSystem(Phaser.Physics.ARCADE);
                 this.background = this.add.tileSprite(0, 0, 1280, 720, 'ground', 32);
-                this.bullets = this.add.group();
-                this.bullets.enableBody = true;
-                this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-                this.bullets.createMultiple(100, 'bullet');
-                this.bullets.setAll('anchor.x', 0.5);
-                this.bullets.setAll('anchor.y', 0.5);
-                this.bullets.setAll('outOfBoundsKill', true);
-                this.bullets.setAll('checkWorldBounds', true);
+                this.bulletsRebels = this.initBulletGroup('Rebels');
+                this.bulletsEmpire = this.initBulletGroup('Empire');
+                this.explosions = this.add.group();
+                this.explosions.createMultiple(30, 'Explosion');
+                this.explosions.callAll('animations.add', 'animations', 'Explosion', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 20, true);
                 this.rebels = this.initUnitGroup('Rebels');
                 this.empire = this.initUnitGroup('Empire');
                 this.unit = this.rebels.getFirstExists(false, true);
                 this.unit.reset(this.world.centerX, this.world.centerX);
+                this.unit.name = "Sam Derwort";
                 this.unit.anchor.setTo(0.5);
                 this.game.debug.text("Use arrow keys to move zig", 0, this.world.height - 8, "white");
             };
@@ -259,13 +281,31 @@ var FacebookWarGame;
                     var destinationY = Math.floor(Math.random() * this.world.height - 1) + 1;
                     this.unit.destination = new Phaser.Point(destinationX, destinationY);
                 }
+                this.game.physics.arcade.overlap(this.bulletsEmpire, this.rebels, this.rebelHit, null, this);
+                this.game.physics.arcade.overlap(this.bulletsRebels, this.empire, this.empireHit, null, this);
+            };
+            Arena.prototype.rebelHit = function (bullet, unit) {
+                //  When a bullet hits an alien we kill them both
+                bullet.kill();
+                unit.name = '';
+                unit.kill();
+                //  Increase the score
+                //score += 20;
+                //scoreText.text = scoreString + score;
+                //  And create an explosion :)
+                var explosion = this.explosions.getFirstExists(false);
+                explosion.reset(unit.body.x, unit.body.y);
+                explosion.play('Explosion', 30, false, true);
+            };
+            Arena.prototype.empireHit = function (bullet, unit) {
             };
             Arena.prototype.initUnitGroup = function (faction) {
                 var unitGroup = this.add.group();
                 unitGroup.enableBody = true;
                 unitGroup.physicsBodyType = Phaser.Physics.ARCADE;
+                var bullets = Client.mechLib.isRebels(faction) ? this.bulletsRebels : this.bulletsEmpire;
                 for (var i = 0; i < 30; i++) {
-                    unitGroup.add(new Client.Player(faction, this.game, 0, 0, this.bullets));
+                    unitGroup.add(new Client.Player(faction, this.game, 0, 0, bullets));
                 }
                 unitGroup.setAll('anchor.x', 0.5);
                 unitGroup.setAll('anchor.y', 0.5);
@@ -273,6 +313,17 @@ var FacebookWarGame;
                 unitGroup.setAll('checkWorldBounds', true);
                 unitGroup.setAll('exists', false);
                 return unitGroup;
+            };
+            Arena.prototype.initBulletGroup = function (faction) {
+                var bullets = this.add.group();
+                bullets.enableBody = true;
+                bullets.physicsBodyType = Phaser.Physics.ARCADE;
+                bullets.createMultiple(50, 'bullet');
+                bullets.setAll('anchor.x', 0.5);
+                bullets.setAll('anchor.y', 0.5);
+                bullets.setAll('outOfBoundsKill', true);
+                bullets.setAll('checkWorldBounds', true);
+                return bullets;
             };
             return Arena;
         }(Phaser.State));
@@ -296,6 +347,7 @@ var FacebookWarGame;
                 this.load.audio('step', './assets/sounds/step3.wav', true);
                 this.load.atlasJSONArray('MechRebels', './assets/sprites/Mech1.png', './assets/sprites/Mech1.json');
                 this.load.atlasJSONArray('MechEmpire', './assets/sprites/Mech2.png', './assets/sprites/Mech2.json');
+                this.load.atlasJSONArray('Explosion', './assets/sprites/explosion.png', './assets/sprites/explosion.json');
             };
             Preloader.prototype.create = function () {
                 var tween = this.add.tween(this.loaderText).to({ alpha: 0 }, 1000, Phaser.Easing.Linear.None, true);

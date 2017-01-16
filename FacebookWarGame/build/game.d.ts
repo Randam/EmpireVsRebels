@@ -4,14 +4,20 @@ declare module FacebookWarGame.Client {
     }
 }
 declare module FacebookWarGame.Client {
-}
-declare module FacebookWarGame.Client {
     enum Direction {
         Up = 1,
         Right = 2,
         Down = 3,
         Left = 4,
     }
+}
+declare module FacebookWarGame.Client {
+    class mechLib {
+        static isRebels(faction: string): boolean;
+        static isEmpire(faction: string): boolean;
+    }
+}
+declare module FacebookWarGame.Client {
     class Player extends Phaser.Sprite {
         destination: Phaser.Point;
         direction: Direction;
@@ -40,10 +46,15 @@ declare module FacebookWarGame.Client {
         rebels: Phaser.Group;
         empire: Phaser.Group;
         unit: Player;
-        bullets: Phaser.Group;
+        bulletsRebels: Phaser.Group;
+        bulletsEmpire: Phaser.Group;
+        explosions: Phaser.Group;
         create(): void;
         update(): void;
+        private rebelHit(bullet, unit);
+        private empireHit(bullet, unit);
         private initUnitGroup(faction);
+        private initBulletGroup(faction);
     }
 }
 declare module FacebookWarGame.Client {

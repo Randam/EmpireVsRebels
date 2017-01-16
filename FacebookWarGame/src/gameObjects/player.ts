@@ -1,12 +1,5 @@
 ﻿module FacebookWarGame.Client {
 
-    export enum Direction {
-        Up = 1,
-        Right = 2,
-        Down = 3,
-        Left = 4
-    }
-
     export class Player extends Phaser.Sprite {
         public destination: Phaser.Point;
         public direction: Direction;
@@ -119,8 +112,8 @@
                 //  Grab the first bullet we can from the pool
                 let bullet: Phaser.Sprite = this.bullets.getFirstExists(false);
 
-                if (this.faction == 'Rebels') this.direction = Direction.Right;
-                if (this.faction == 'Empire') this.direction = Direction.Left;
+                if (mechLib.isRebels(this.faction)) this.direction = Direction.Right;
+                if (mechLib.isEmpire(this.faction)) this.direction = Direction.Left;
 
                 if (bullet) {
                     //  And fire it
@@ -152,7 +145,7 @@
 
                     if (this.bulletsToFire <= 0) {
                         this.bulletsToFire = Math.floor(Math.random() * 3) + 1;
-                        if (this.faction == 'Rebels') {
+                        if (mechLib.isRebels(this.faction)) {
                             this.destination = new Phaser.Point(Math.floor(Math.random() * this.game.world.width * 0.25) + 1, Math.floor(Math.random() * this.game.world.height - 1) + 1);
                         } else {
                             this.destination = new Phaser.Point(Math.floor(this.game.world.width * 0.75 + Math.random() * this.game.world.width * 0.25), Math.floor(Math.random() * this.game.world.height - 1) + 1);
