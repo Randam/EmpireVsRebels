@@ -41,7 +41,9 @@
     <Content Include="build\assets\ui\gameLogo.png" />
     <Content Include="build\assets\ui\titlePage.png" />
     <Content Include="build\game.js" />
-    <Content Include="build\index.html" />
+    <Content Include="build\index.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="build\libs\phaser.min.js" />
     <Content Include="web.config" />
   </ItemGroup>
@@ -116,6 +118,7 @@
     <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
     <TypeScriptMapRoot />
     <TypeScriptSourceRoot />
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TypeScriptRemoveComments>true</TypeScriptRemoveComments>

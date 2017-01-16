@@ -3,18 +3,20 @@ declare module FacebookWarGame.Client {
         constructor();
     }
 }
-declare module FacebookWarGame.Client {
-    class mechLib {
-        static isRebels(faction: string): boolean;
-        static isEmpire(faction: string): boolean;
-    }
-}
+declare let game: FacebookWarGame.Client.GameEngine;
+declare function addUnit(name: string): void;
 declare module FacebookWarGame.Client {
     enum Direction {
         Up = 1,
         Right = 2,
         Down = 3,
         Left = 4,
+    }
+}
+declare module FacebookWarGame.Client {
+    class MechLib {
+        static isRebels(faction: string): boolean;
+        static isEmpire(faction: string): boolean;
     }
 }
 declare module FacebookWarGame.Client {
@@ -45,6 +47,12 @@ declare module FacebookWarGame.Client {
     }
 }
 declare module FacebookWarGame.Client {
+    class Boot extends Phaser.State {
+        preload(): void;
+        create(): void;
+    }
+}
+declare module FacebookWarGame.Client {
     class Arena extends Phaser.State {
         background: Phaser.TileSprite;
         music: Phaser.Sound;
@@ -64,12 +72,6 @@ declare module FacebookWarGame.Client {
         private unitHit(bullet, unit);
         private initUnitGroup(faction);
         private initBulletGroup(faction);
-    }
-}
-declare module FacebookWarGame.Client {
-    class Boot extends Phaser.State {
-        preload(): void;
-        create(): void;
     }
 }
 declare module FacebookWarGame.Client {
