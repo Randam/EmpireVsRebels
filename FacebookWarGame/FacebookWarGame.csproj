@@ -22,6 +22,13 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="build\assets\sounds\Explosion1.mp3" />
+    <Content Include="build\assets\sounds\Explosion2.mp3" />
+    <Content Include="build\assets\sounds\Explosion3.mp3" />
+    <Content Include="build\assets\sounds\Explosion4.mp3" />
+    <Content Include="build\assets\sounds\Explosion5.mp3" />
+    <Content Include="build\assets\sounds\laser.wav" />
+    <Content Include="build\assets\sounds\step2.wav" />
     <Content Include="build\assets\sprites\bullet.png" />
     <Content Include="build\assets\sprites\explode.png" />
     <Content Include="build\assets\sprites\ground.png" />
@@ -50,6 +57,7 @@
     <TypeScriptCompile Include="src\game.ts" />
     <TypeScriptCompile Include="src\gameLib\types.ts" />
     <TypeScriptCompile Include="src\gameLib\mechLib.ts" />
+    <TypeScriptCompile Include="src\gameObjects\bullet.ts" />
     <TypeScriptCompile Include="src\gameObjects\player.ts" />
     <TypeScriptCompile Include="src\gameStates\boot.ts" />
     <TypeScriptCompile Include="src\gameStates\arena.ts" />

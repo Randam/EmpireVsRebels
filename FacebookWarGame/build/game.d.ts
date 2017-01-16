@@ -4,6 +4,12 @@ declare module FacebookWarGame.Client {
     }
 }
 declare module FacebookWarGame.Client {
+    class mechLib {
+        static isRebels(faction: string): boolean;
+        static isEmpire(faction: string): boolean;
+    }
+}
+declare module FacebookWarGame.Client {
     enum Direction {
         Up = 1,
         Right = 2,
@@ -12,9 +18,9 @@ declare module FacebookWarGame.Client {
     }
 }
 declare module FacebookWarGame.Client {
-    class mechLib {
-        static isRebels(faction: string): boolean;
-        static isEmpire(faction: string): boolean;
+    class Bullet extends Phaser.Sprite {
+        firedBy: Player;
+        constructor(game: Phaser.Game, x: number, y: number);
     }
 }
 declare module FacebookWarGame.Client {
@@ -22,21 +28,20 @@ declare module FacebookWarGame.Client {
         destination: Phaser.Point;
         direction: Direction;
         game: Phaser.Game;
+        bulletsToFire: number;
         private walkingSound;
+        private firingSound;
         private bullets;
         private bulletTime;
         private faction;
         private nameLabel;
-        private bulletsToFire;
+        private score;
         constructor(faction: string, game: Phaser.Game, x: number, y: number, bullets: Phaser.Group);
+        kill(): Phaser.Sprite;
         update(): void;
+        private destinationReached();
+        private setNewDestination();
         private fireBullet();
-    }
-}
-declare module FacebookWarGame.Client {
-    class Boot extends Phaser.State {
-        preload(): void;
-        create(): void;
     }
 }
 declare module FacebookWarGame.Client {
@@ -45,16 +50,26 @@ declare module FacebookWarGame.Client {
         music: Phaser.Sound;
         rebels: Phaser.Group;
         empire: Phaser.Group;
-        unit: Player;
         bulletsRebels: Phaser.Group;
         bulletsEmpire: Phaser.Group;
         explosions: Phaser.Group;
+        explodingSound: Array<Phaser.Sound>;
         create(): void;
         update(): void;
+        addEmpireUnit(name: string): Player;
+        addRebelsUnit(name: string): Player;
+        private addUnit(name, units, startX, startY, destX, destY);
         private rebelHit(bullet, unit);
         private empireHit(bullet, unit);
+        private unitHit(bullet, unit);
         private initUnitGroup(faction);
         private initBulletGroup(faction);
+    }
+}
+declare module FacebookWarGame.Client {
+    class Boot extends Phaser.State {
+        preload(): void;
+        create(): void;
     }
 }
 declare module FacebookWarGame.Client {

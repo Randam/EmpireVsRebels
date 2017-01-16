@@ -9,7 +9,13 @@
 
             this.load.spritesheet('ground', './assets/sprites/ground_tiles.png', 32, 32);
             this.load.image('bullet', './assets/sprites/bullet.png');
+
+            for (let i = 1; i <= 5; i++) {
+                this.load.audio('explosion' + i.toString(), './assets/sounds/Explosion' + i.toString() + '.mp3', true);
+            }
+
             this.load.audio('step', './assets/sounds/step3.wav', true);
+            this.load.audio('laser', './assets/sounds/laser2.wav', true);
 
             this.load.atlasJSONArray('MechRebels', './assets/sprites/Mech1.png', './assets/sprites/Mech1.json');
             this.load.atlasJSONArray('MechEmpire', './assets/sprites/Mech2.png', './assets/sprites/Mech2.json');
