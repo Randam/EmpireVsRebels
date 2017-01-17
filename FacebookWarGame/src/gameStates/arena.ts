@@ -40,11 +40,11 @@
 
         update(): void {
             if (this.game.input.keyboard.isDown(Phaser.Keyboard.DELETE)) {
-                this.addEmpireUnit("Empire Robot");
+                this.addEmpireUnit(new User("Empire Robot", "Empire"));
             }
 
             if (this.game.input.keyboard.isDown(Phaser.Keyboard.INSERT)) {
-                this.addRebelsUnit("Rebel Mech");
+                this.addRebelsUnit(new User("Rebel Mech", "Rebels"));
             }
 
             if (this.empire.countLiving() === 0) {
@@ -57,9 +57,9 @@
             this.game.physics.arcade.overlap(this.bulletsRebels, this.empire, this.empireHit, undefined, this);
         }
 
-        public addEmpireUnit(name: string): Player {
+        public addEmpireUnit(user: User): Player {
             return this.addUnit(
-                name,
+                user.name,
                 this.empire,
                 this.world.width - 1,
                 Math.floor(Math.random() * this.world.height - 1) + 1,
@@ -67,14 +67,21 @@
                 Math.floor(Math.random() * this.world.height - 1) + 1);
         }
 
-        public addRebelsUnit(name: string): Player {
+        public addRebelsUnit(user: User): Player {
             return this.addUnit(
-                name,
+                user.name,
                 this.rebels,
                 1,
                 Math.floor(Math.random() * this.world.height - 1) + 1,
                 Math.floor(Math.random() * this.world.width * 0.25) + 1,
                 Math.floor(Math.random() * this.world.height - 1) + 1);
+        }
+
+        public addUnitForUser(user: User) {
+            if (MechLib.isEmpire(user.faction))
+                this.addEmpireUnit(user);
+            else
+                this.addRebelsUnit(user);
         }
 
         private addUnit(name: string, units: Phaser.Group, startX: number, startY: number, destX: number, destY: number): Player {

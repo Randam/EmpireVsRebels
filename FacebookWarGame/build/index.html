@@ -10,11 +10,17 @@
 </head>
 <body>
     <div id="content"></div>
-    <div id="ui">
-        <form id="controls">
-            <input type="text" value="" id="userName" size="30" /> &nbsp;
-            <input type="button" value="Create" name="submitButton" onclick="addUnit(document.getElementById('userName').value);" />
-        </form>
-    </div>
+    <table border="0" cellpadding="0" cellspacing="0" width="1280" align="center">
+        <tr>
+            <td width="50%" align="left">
+                <input type="text" value="" id="addRebel" size="30" /> &nbsp;
+                <input type="button" value="Add Rebel Unit" name="submitButton" onclick="addUnit(document.getElementById('addRebel').value, 'Rebels');" />
+            </td>
+            <td width="50%" align="right">
+                <input type="text" value="" id="addEmpire" size="30" /> &nbsp;
+                <input type="button" value="Add Empire Unit" name="submitButton" onclick="addUnit(document.getElementById('addEmpire').value, 'Empire');" />
+            </td>
+        </tr>    
+    </table>
 </body>
 </html>

@@ -17,8 +17,17 @@
 
 let game: FacebookWarGame.Client.GameEngine = null;
 
-function addUnit(name: string): void {
-    game.state.states.Arena.addEmpireUnit(name);
+function addUnit(name: string, faction: string): void {
+    let user: FacebookWarGame.Client.User = FacebookWarGame.Client.User.list.filter(function (ul) {
+        return ul.name == name;
+    })[0];
+
+    if (user === undefined) {
+        user = new FacebookWarGame.Client.User(name, faction, undefined);
+        FacebookWarGame.Client.User.list.push(user);
+    }
+
+    game.state.states.Arena.addUnitForUser(user);
 }
 
 window.onload = () => {

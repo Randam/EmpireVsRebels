@@ -4,7 +4,7 @@ declare module FacebookWarGame.Client {
     }
 }
 declare let game: FacebookWarGame.Client.GameEngine;
-declare function addUnit(name: string): void;
+declare function addUnit(name: string, faction: string): void;
 declare module FacebookWarGame.Client {
     enum Direction {
         Up = 1,
@@ -17,6 +17,18 @@ declare module FacebookWarGame.Client {
     class MechLib {
         static isRebels(faction: string): boolean;
         static isEmpire(faction: string): boolean;
+    }
+}
+declare module FacebookWarGame.Client {
+    class User {
+        static list: Array<User>;
+        name: string;
+        fbId: string;
+        faction: string;
+        score: number;
+        respawns: number;
+        kills: number;
+        constructor(name?: string, faction?: string, fbId?: string);
     }
 }
 declare module FacebookWarGame.Client {
@@ -64,8 +76,9 @@ declare module FacebookWarGame.Client {
         explodingSound: Array<Phaser.Sound>;
         create(): void;
         update(): void;
-        addEmpireUnit(name: string): Player;
-        addRebelsUnit(name: string): Player;
+        addEmpireUnit(user: User): Player;
+        addRebelsUnit(user: User): Player;
+        addUnitForUser(user: User): void;
         private addUnit(name, units, startX, startY, destX, destY);
         private rebelHit(bullet, unit);
         private empireHit(bullet, unit);

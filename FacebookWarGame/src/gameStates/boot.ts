@@ -26,7 +26,7 @@
                 this.scale.refresh();
             }
 
-            this.game.state.start('Preloader', true, false);
+            this.game.state.start("Preloader", true, false);
         }
     }
 

@@ -4,7 +4,7 @@
         public firedBy: Player;
 
         constructor(game: Phaser.Game, x: number, y: number) {
-            super(game, x, y, 'bullet');
+            super(game, x, y, "bullet");
         }
 
     }

@@ -22,8 +22,15 @@ var FacebookWarGame;
     })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
 })(FacebookWarGame || (FacebookWarGame = {}));
 var game = null;
-function addUnit(name) {
-    game.state.states.Arena.addEmpireUnit(name);
+function addUnit(name, faction) {
+    var user = FacebookWarGame.Client.User.list.filter(function (ul) {
+        return ul.name == name;
+    })[0];
+    if (user === undefined) {
+        user = new FacebookWarGame.Client.User(name, faction, undefined);
+        FacebookWarGame.Client.User.list.push(user);
+    }
+    game.state.states.Arena.addUnitForUser(user);
 }
 window.onload = function () {
     game = new FacebookWarGame.Client.GameEngine();
@@ -63,10 +70,29 @@ var FacebookWarGame;
 (function (FacebookWarGame) {
     var Client;
     (function (Client) {
+        var User = (function () {
+            function User(name, faction, fbId) {
+                this.name = name;
+                this.fbId = fbId;
+                this.faction = faction;
+                this.score = 0;
+                this.respawns = 0;
+                this.kills = 0;
+            }
+            User.list = [];
+            return User;
+        }());
+        Client.User = User;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
         var Bullet = (function (_super) {
             __extends(Bullet, _super);
             function Bullet(game, x, y) {
-                _super.call(this, game, x, y, 'bullet');
+                _super.call(this, game, x, y, "bullet");
             }
             return Bullet;
         }(Phaser.Sprite));
@@ -255,7 +281,7 @@ var FacebookWarGame;
                     this.scale.pageAlignHorizontally = true;
                     this.scale.refresh();
                 }
-                this.game.state.start('Preloader', true, false);
+                this.game.state.start("Preloader", true, false);
             };
             return Boot;
         }(Phaser.State));
@@ -288,10 +314,10 @@ var FacebookWarGame;
             };
             Arena.prototype.update = function () {
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.DELETE)) {
-                    this.addEmpireUnit("Empire Robot");
+                    this.addEmpireUnit(new Client.User("Empire Robot", "Empire"));
                 }
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.INSERT)) {
-                    this.addRebelsUnit("Rebel Mech");
+                    this.addRebelsUnit(new Client.User("Rebel Mech", "Rebels"));
                 }
                 if (this.empire.countLiving() === 0) {
                     this.rebels.setAll("bulletsToFire", 0);
@@ -302,11 +328,17 @@ var FacebookWarGame;
                 this.game.physics.arcade.overlap(this.bulletsEmpire, this.rebels, this.rebelHit, undefined, this);
                 this.game.physics.arcade.overlap(this.bulletsRebels, this.empire, this.empireHit, undefined, this);
             };
-            Arena.prototype.addEmpireUnit = function (name) {
-                return this.addUnit(name, this.empire, this.world.width - 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(this.world.width * 0.75 + Math.random() * this.world.width * 0.25), Math.floor(Math.random() * this.world.height - 1) + 1);
+            Arena.prototype.addEmpireUnit = function (user) {
+                return this.addUnit(user.name, this.empire, this.world.width - 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(this.world.width * 0.75 + Math.random() * this.world.width * 0.25), Math.floor(Math.random() * this.world.height - 1) + 1);
             };
-            Arena.prototype.addRebelsUnit = function (name) {
-                return this.addUnit(name, this.rebels, 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(Math.random() * this.world.width * 0.25) + 1, Math.floor(Math.random() * this.world.height - 1) + 1);
+            Arena.prototype.addRebelsUnit = function (user) {
+                return this.addUnit(user.name, this.rebels, 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(Math.random() * this.world.width * 0.25) + 1, Math.floor(Math.random() * this.world.height - 1) + 1);
+            };
+            Arena.prototype.addUnitForUser = function (user) {
+                if (Client.MechLib.isEmpire(user.faction))
+                    this.addEmpireUnit(user);
+                else
+                    this.addRebelsUnit(user);
             };
             Arena.prototype.addUnit = function (name, units, startX, startY, destX, destY) {
                 var unit = units.getFirstExists(false, true);
@@ -380,23 +412,23 @@ var FacebookWarGame;
             Preloader.prototype.preload = function () {
                 this.loaderText = this.game.add.text(this.world.centerX, 200, "Loading the battlefield...", { font: "18px Arial", fill: "#A9A91111", align: "center" });
                 this.loaderText.anchor.setTo(0.5);
-                this.load.spritesheet('ground', './assets/sprites/ground_tiles.png', 32, 32);
-                this.load.image('bullet', './assets/sprites/bullet.png');
+                this.load.spritesheet("ground", "./assets/sprites/ground_tiles.png", 32, 32);
+                this.load.image("bullet", "./assets/sprites/bullet.png");
                 for (var i = 1; i <= 5; i++) {
-                    this.load.audio('explosion' + i.toString(), './assets/sounds/Explosion' + i.toString() + '.mp3', true);
+                    this.load.audio("explosion" + i.toString(), "./assets/sounds/Explosion" + i.toString() + ".mp3", true);
                 }
-                this.load.audio('step', './assets/sounds/step3.wav', true);
-                this.load.audio('laser', './assets/sounds/laser2.wav', true);
-                this.load.atlasJSONArray('MechRebels', './assets/sprites/Mech1.png', './assets/sprites/Mech1.json');
-                this.load.atlasJSONArray('MechEmpire', './assets/sprites/Mech2.png', './assets/sprites/Mech2.json');
-                this.load.atlasJSONArray('Explosion', './assets/sprites/explosion.png', './assets/sprites/explosion.json');
+                this.load.audio("step", "./assets/sounds/step3.wav", true);
+                this.load.audio("laser", "./assets/sounds/laser2.wav", true);
+                this.load.atlasJSONArray("MechRebels", "./assets/sprites/Mech1.png", "./assets/sprites/Mech1.json");
+                this.load.atlasJSONArray("MechEmpire", "./assets/sprites/Mech2.png", "./assets/sprites/Mech2.json");
+                this.load.atlasJSONArray("Explosion", "./assets/sprites/explosion.png", "./assets/sprites/explosion.json");
             };
             Preloader.prototype.create = function () {
                 var tween = this.add.tween(this.loaderText).to({ alpha: 0 }, 1000, Phaser.Easing.Linear.None, true);
                 tween.onComplete.add(this.startArena, this);
             };
             Preloader.prototype.startArena = function () {
-                this.game.state.start('Arena', true, false);
+                this.game.state.start("Arena", true, false);
             };
             return Preloader;
         }(Phaser.State));
