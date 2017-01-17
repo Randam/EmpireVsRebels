@@ -7,7 +7,8 @@
             this.loaderText = this.game.add.text(this.world.centerX, 200, "Loading the battlefield...", { font: "18px Arial", fill: "#A9A91111", align: "center" });
             this.loaderText.anchor.setTo(0.5);
 
-            this.load.spritesheet("ground", "./assets/sprites/ground_tiles.png", 32, 32);
+            this.load.tilemap("arena", "./assets/sprites/arena.json", undefined, Phaser.Tilemap.TILED_JSON);
+            this.load.image("ground", "./assets/sprites/ground_tiles.png");
             this.load.image("bullet", "./assets/sprites/bullet.png");
 
             for (let i = 1; i <= 5; i++) {

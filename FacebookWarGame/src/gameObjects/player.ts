@@ -5,6 +5,7 @@
         public direction: Direction;
         public game: Phaser.Game;
         public bulletsToFire: number;
+        public user: User;
 
         private walkingSound: Phaser.Sound;
         private firingSound: Phaser.Sound;

@@ -2,11 +2,15 @@
 
     export class Arena extends Phaser.State {
 
-        background: Phaser.TileSprite;
+        //background: Phaser.TileSprite;
         music: Phaser.Sound;
         rebels: Phaser.Group;
         empire: Phaser.Group;
+        map: Phaser.Tilemap;
 
+        recordLabel: Phaser.Text;
+        recordText: Phaser.Text;
+        timerText: Phaser.Text;
         bulletsRebels: Phaser.Group;
         bulletsEmpire: Phaser.Group;
         explosions: Phaser.Group;
@@ -15,7 +19,11 @@
         create(): void {
             this.physics.startSystem(Phaser.Physics.ARCADE);
 
-            this.background = this.add.tileSprite(0, 0, 1280, 720, "ground", 32);
+            this.map = game.add.tilemap("arena");
+            this.map.addTilesetImage("ground_tiles", "ground", 32, 32);
+            let layer: Phaser.TilemapLayer = this.map.createLayer("ground_layer");
+
+            //this.background = this.add.tileSprite(0, 0, 1280, 720, "ground", 32);
 
             this.bulletsRebels = this.initBulletGroup("Rebels");
             this.bulletsEmpire = this.initBulletGroup("Empire");
@@ -36,6 +44,12 @@
 
             this.rebels = this.initUnitGroup("Rebels");
             this.empire = this.initUnitGroup("Empire");
+
+            this.recordLabel = this.game.add.text(game.world.centerX, 30, "Current Leader", { font: "10pt Arial Black", fill: "#999999", stroke: "#000000", strokeThickness: 3 });
+            this.recordLabel.anchor.set(0.5);
+
+            this.recordText = this.game.add.text(game.world.centerX, 60, "Jeroen Derwort", { font: "20pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
+            this.recordText.anchor.set(0.5);
         }
 
         update(): void {
@@ -59,7 +73,7 @@
 
         public addEmpireUnit(user: User): Player {
             return this.addUnit(
-                user.name,
+                user,
                 this.empire,
                 this.world.width - 1,
                 Math.floor(Math.random() * this.world.height - 1) + 1,
@@ -69,7 +83,7 @@
 
         public addRebelsUnit(user: User): Player {
             return this.addUnit(
-                user.name,
+                user,
                 this.rebels,
                 1,
                 Math.floor(Math.random() * this.world.height - 1) + 1,
@@ -84,11 +98,11 @@
                 this.addRebelsUnit(user);
         }
 
-        private addUnit(name: string, units: Phaser.Group, startX: number, startY: number, destX: number, destY: number): Player {
+        private addUnit(user: User, units: Phaser.Group, startX: number, startY: number, destX: number, destY: number): Player {
             let unit: Player = units.getFirstExists(false, true);
             unit.reset(startX, startY);
             unit.anchor.setTo(0.5);
-            unit.name = name;
+            unit.name = user.name;
             unit.destination = new Phaser.Point(destX, destY);
 
             return unit;

@@ -22,6 +22,12 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="typings\linq\linq.d.ts" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="build\assets\sounds\Explosion1.mp3" />
     <Content Include="build\assets\sounds\Explosion2.mp3" />
     <Content Include="build\assets\sounds\Explosion3.mp3" />
@@ -45,6 +51,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="build\libs\phaser.min.js" />
+    <Content Include="scripts\jinqjs.js" />
+    <Content Include="scripts\jinqjs.min.js" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -56,6 +64,7 @@
     <Folder Include="src\utils\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="scripts\typings\jinqJs\jinqJs.d.ts" />
     <TypeScriptCompile Include="src\game.ts" />
     <TypeScriptCompile Include="src\gameLib\types.ts" />
     <TypeScriptCompile Include="src\gameLib\mechLib.ts" />

@@ -3,6 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+/// <reference path="../references.d.ts" />
 var FacebookWarGame;
 (function (FacebookWarGame) {
     var Client;
@@ -300,7 +301,10 @@ var FacebookWarGame;
             }
             Arena.prototype.create = function () {
                 this.physics.startSystem(Phaser.Physics.ARCADE);
-                this.background = this.add.tileSprite(0, 0, 1280, 720, "ground", 32);
+                this.map = game.add.tilemap("arena");
+                this.map.addTilesetImage("ground_tiles", "ground", 32, 32);
+                var layer = this.map.createLayer("ground_layer");
+                //this.background = this.add.tileSprite(0, 0, 1280, 720, "ground", 32);
                 this.bulletsRebels = this.initBulletGroup("Rebels");
                 this.bulletsEmpire = this.initBulletGroup("Empire");
                 this.explosions = this.add.group();
@@ -311,6 +315,10 @@ var FacebookWarGame;
                 }
                 this.rebels = this.initUnitGroup("Rebels");
                 this.empire = this.initUnitGroup("Empire");
+                this.recordLabel = this.game.add.text(game.world.centerX, 30, "Current Leader", { font: "10pt Arial Black", fill: "#999999", stroke: "#000000", strokeThickness: 3 });
+                this.recordLabel.anchor.set(0.5);
+                this.recordText = this.game.add.text(game.world.centerX, 60, "Jeroen Derwort", { font: "20pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
+                this.recordText.anchor.set(0.5);
             };
             Arena.prototype.update = function () {
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.DELETE)) {
@@ -329,10 +337,10 @@ var FacebookWarGame;
                 this.game.physics.arcade.overlap(this.bulletsRebels, this.empire, this.empireHit, undefined, this);
             };
             Arena.prototype.addEmpireUnit = function (user) {
-                return this.addUnit(user.name, this.empire, this.world.width - 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(this.world.width * 0.75 + Math.random() * this.world.width * 0.25), Math.floor(Math.random() * this.world.height - 1) + 1);
+                return this.addUnit(user, this.empire, this.world.width - 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(this.world.width * 0.75 + Math.random() * this.world.width * 0.25), Math.floor(Math.random() * this.world.height - 1) + 1);
             };
             Arena.prototype.addRebelsUnit = function (user) {
-                return this.addUnit(user.name, this.rebels, 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(Math.random() * this.world.width * 0.25) + 1, Math.floor(Math.random() * this.world.height - 1) + 1);
+                return this.addUnit(user, this.rebels, 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(Math.random() * this.world.width * 0.25) + 1, Math.floor(Math.random() * this.world.height - 1) + 1);
             };
             Arena.prototype.addUnitForUser = function (user) {
                 if (Client.MechLib.isEmpire(user.faction))
@@ -340,11 +348,11 @@ var FacebookWarGame;
                 else
                     this.addRebelsUnit(user);
             };
-            Arena.prototype.addUnit = function (name, units, startX, startY, destX, destY) {
+            Arena.prototype.addUnit = function (user, units, startX, startY, destX, destY) {
                 var unit = units.getFirstExists(false, true);
                 unit.reset(startX, startY);
                 unit.anchor.setTo(0.5);
-                unit.name = name;
+                unit.name = user.name;
                 unit.destination = new Phaser.Point(destX, destY);
                 return unit;
             };
@@ -412,7 +420,8 @@ var FacebookWarGame;
             Preloader.prototype.preload = function () {
                 this.loaderText = this.game.add.text(this.world.centerX, 200, "Loading the battlefield...", { font: "18px Arial", fill: "#A9A91111", align: "center" });
                 this.loaderText.anchor.setTo(0.5);
-                this.load.spritesheet("ground", "./assets/sprites/ground_tiles.png", 32, 32);
+                this.load.tilemap("arena", "./assets/sprites/arena.json", undefined, Phaser.Tilemap.TILED_JSON);
+                this.load.image("ground", "./assets/sprites/ground_tiles.png");
                 this.load.image("bullet", "./assets/sprites/bullet.png");
                 for (var i = 1; i <= 5; i++) {
                     this.load.audio("explosion" + i.toString(), "./assets/sounds/Explosion" + i.toString() + ".mp3", true);

@@ -1,4 +1,5 @@
-﻿module FacebookWarGame.Client {
+﻿/// <reference path="../references.d.ts" />
+module FacebookWarGame.Client {
 
     export class GameEngine extends Phaser.Game {
 

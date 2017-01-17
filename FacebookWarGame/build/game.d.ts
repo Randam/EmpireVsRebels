@@ -1,3 +1,4 @@
+/// <reference path="../references.d.ts" />
 declare module FacebookWarGame.Client {
     class GameEngine extends Phaser.Game {
         constructor();
@@ -43,6 +44,7 @@ declare module FacebookWarGame.Client {
         direction: Direction;
         game: Phaser.Game;
         bulletsToFire: number;
+        user: User;
         private walkingSound;
         private firingSound;
         private bullets;
@@ -66,10 +68,13 @@ declare module FacebookWarGame.Client {
 }
 declare module FacebookWarGame.Client {
     class Arena extends Phaser.State {
-        background: Phaser.TileSprite;
         music: Phaser.Sound;
         rebels: Phaser.Group;
         empire: Phaser.Group;
+        map: Phaser.Tilemap;
+        recordLabel: Phaser.Text;
+        recordText: Phaser.Text;
+        timerText: Phaser.Text;
         bulletsRebels: Phaser.Group;
         bulletsEmpire: Phaser.Group;
         explosions: Phaser.Group;
@@ -79,7 +84,7 @@ declare module FacebookWarGame.Client {
         addEmpireUnit(user: User): Player;
         addRebelsUnit(user: User): Player;
         addUnitForUser(user: User): void;
-        private addUnit(name, units, startX, startY, destX, destY);
+        private addUnit(user, units, startX, startY, destX, destY);
         private rebelHit(bullet, unit);
         private empireHit(bullet, unit);
         private unitHit(bullet, unit);
