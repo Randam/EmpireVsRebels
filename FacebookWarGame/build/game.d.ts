@@ -19,6 +19,16 @@ declare module FacebookWarGame.Client {
         static isRebels(faction: string): boolean;
         static isEmpire(faction: string): boolean;
     }
+    class CountDownTimer {
+        endTime: number;
+        hours: number;
+        mins: number;
+        time: Date;
+        constructor(minutes: number, seconds: number);
+        getTimer(): string;
+        timerExpired(): boolean;
+        private twoDigits(n);
+    }
 }
 declare module FacebookWarGame.Client {
     class User {
@@ -72,24 +82,30 @@ declare module FacebookWarGame.Client {
         rebels: Phaser.Group;
         empire: Phaser.Group;
         map: Phaser.Tilemap;
-        recordLabel: Phaser.Text;
-        recordText: Phaser.Text;
+        leader: User;
+        leaderLabelText: Phaser.Text;
+        leaderNameText: Phaser.Text;
+        leaderFactionText: Phaser.Text;
+        leaderScoreText: Phaser.Text;
         timerText: Phaser.Text;
+        timeLeft: number;
         bulletsRebels: Phaser.Group;
         bulletsEmpire: Phaser.Group;
         explosions: Phaser.Group;
         explodingSound: Array<Phaser.Sound>;
+        countDownTimer: CountDownTimer;
         create(): void;
         update(): void;
         addEmpireUnit(user: User): Player;
         addRebelsUnit(user: User): Player;
         addUnitForUser(user: User): void;
-        private addUnit(user, units, startX, startY, destX, destY);
+        private addUnit(user, health, units, startX, startY, destX, destY);
         private rebelHit(bullet, unit);
         private empireHit(bullet, unit);
         private unitHit(bullet, unit);
         private initUnitGroup(faction);
         private initBulletGroup(faction);
+        roundEnd(): void;
     }
 }
 declare module FacebookWarGame.Client {
@@ -98,5 +114,13 @@ declare module FacebookWarGame.Client {
         preload(): void;
         create(): void;
         startArena(): void;
+    }
+}
+declare module FacebookWarGame.Client {
+    class RoundStart extends Phaser.State {
+        background: Phaser.TileSprite;
+        create(): void;
+        fadeOut(): void;
+        startGame(): void;
     }
 }

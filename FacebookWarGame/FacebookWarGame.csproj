@@ -22,6 +22,7 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="build\assets\ui\roundBackground.png" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -74,6 +75,7 @@
     <TypeScriptCompile Include="src\gameStates\boot.ts" />
     <TypeScriptCompile Include="src\gameStates\arena.ts" />
     <TypeScriptCompile Include="src\gameStates\preloader.ts" />
+    <TypeScriptCompile Include="src\gameStates\roundStart.ts" />
     <TypeScriptCompile Include="tsDefinitions\p2.d.ts" />
     <TypeScriptCompile Include="tsDefinitions\phaser.comments.d.ts" />
     <TypeScriptCompile Include="tsDefinitions\pixi.comments.d.ts" />

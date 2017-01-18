@@ -10,6 +10,7 @@
             this.load.tilemap("arena", "./assets/sprites/arena.json", undefined, Phaser.Tilemap.TILED_JSON);
             this.load.image("ground", "./assets/sprites/ground_tiles.png");
             this.load.image("bullet", "./assets/sprites/bullet.png");
+            this.load.image("roundBackground", "./assets/ui/roundBackground.png");
 
             for (let i = 1; i <= 5; i++) {
                 this.load.audio("explosion" + i.toString(), "./assets/sounds/Explosion" + i.toString() + ".mp3", true);

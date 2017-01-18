@@ -9,6 +9,7 @@ module FacebookWarGame.Client {
             this.state.add("Boot", Boot, false);
             this.state.add("Preloader", Preloader, false);
             this.state.add("Arena", Arena, false);
+            this.state.add("RoundStart", RoundStart, false); 
 
             this.state.start("Boot");
         }

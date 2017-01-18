@@ -15,6 +15,7 @@ var FacebookWarGame;
                 this.state.add("Boot", Client.Boot, false);
                 this.state.add("Preloader", Client.Preloader, false);
                 this.state.add("Arena", Client.Arena, false);
+                this.state.add("RoundStart", Client.RoundStart, false);
                 this.state.start("Boot");
             }
             return GameEngine;
@@ -65,6 +66,32 @@ var FacebookWarGame;
             return MechLib;
         }());
         Client.MechLib = MechLib;
+        var CountDownTimer = (function () {
+            function CountDownTimer(minutes, seconds) {
+                this.endTime = (+new Date) + 1000 * (60 * minutes + seconds) + 500;
+            }
+            CountDownTimer.prototype.getTimer = function () {
+                var msLeft = this.endTime - (+new Date);
+                if (this.timerExpired()) {
+                    return "Round ended!";
+                }
+                else {
+                    this.time = new Date(msLeft);
+                    this.hours = this.time.getUTCHours();
+                    this.mins = this.time.getUTCMinutes();
+                    return ("Round ends in: " + (this.hours ? this.hours + ':' + this.twoDigits(this.mins) : this.mins) + ':' + this.twoDigits(this.time.getUTCSeconds()));
+                }
+            };
+            CountDownTimer.prototype.timerExpired = function () {
+                var msLeft = this.endTime - (+new Date);
+                return (msLeft < 1000);
+            };
+            CountDownTimer.prototype.twoDigits = function (n) {
+                return (n <= 9 ? "0" + n : n);
+            };
+            return CountDownTimer;
+        }());
+        Client.CountDownTimer = CountDownTimer;
     })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
 })(FacebookWarGame || (FacebookWarGame = {}));
 var FacebookWarGame;
@@ -136,8 +163,9 @@ var FacebookWarGame;
                 return this;
             };
             Player.prototype.update = function () {
+                var mechSpeed = 80;
+                var healthRate = 0;
                 if (this.alive && this.x > 0 && this.y > 0) {
-                    var mechSpeed = 80;
                     if (Math.floor(this.destination.x / mechSpeed) < Math.floor(this.x / mechSpeed)) {
                         this.direction = Client.Direction.Left;
                         this.body.velocity.x = -mechSpeed;
@@ -183,6 +211,8 @@ var FacebookWarGame;
                     }
                     this.nameLabel.x = this.x;
                     this.nameLabel.y = this.y - 48;
+                    if (this.health < 100)
+                        this.health += healthRate;
                 }
             };
             Player.prototype.destinationReached = function () {
@@ -304,21 +334,29 @@ var FacebookWarGame;
                 this.map = game.add.tilemap("arena");
                 this.map.addTilesetImage("ground_tiles", "ground", 32, 32);
                 var layer = this.map.createLayer("ground_layer");
-                //this.background = this.add.tileSprite(0, 0, 1280, 720, "ground", 32);
+                this.countDownTimer = new Client.CountDownTimer(0, 3);
+                this.leader = new Client.User("Jeroen Derwort", "Empire", "");
+                this.leader.score = 0;
+                this.leaderLabelText = this.game.add.text(game.world.centerX - 200, 70, "Current Leader", { font: "10pt Arial Black", fill: "#999999", stroke: "#000000", strokeThickness: 3 });
+                this.leaderNameText = this.game.add.text(game.world.centerX - 200, 94, this.leader.name, { font: "18pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
+                this.leaderFactionText = this.game.add.text(game.world.centerX - 200, 130, "[" + this.leader.faction + "]", { font: "10pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
+                this.leaderScoreText = this.game.add.text(game.world.centerX + 160, 76, this.leader.score.toString(), { font: "40pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
+                this.timerText = this.game.add.text(game.world.centerX + 224, 40, this.countDownTimer.getTimer(), { font: "10pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 1 });
+                this.leaderLabelText.anchor.set(0);
+                this.leaderNameText.anchor.set(0);
+                this.leaderFactionText.anchor.set(0);
+                this.leaderScoreText.anchor.set(0);
+                this.timerText.anchor.set(1, 0);
                 this.bulletsRebels = this.initBulletGroup("Rebels");
                 this.bulletsEmpire = this.initBulletGroup("Empire");
+                this.rebels = this.initUnitGroup("Rebels");
+                this.empire = this.initUnitGroup("Empire");
                 this.explosions = this.add.group();
                 this.explosions.createMultiple(60, "Explosion");
                 this.explosions.callAll("animations.add", "animations", "Explosion", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 20, true);
                 for (var i = 1; i <= 5; i++) {
                     this.explodingSound.push(this.add.sound("explosion" + i.toString()));
                 }
-                this.rebels = this.initUnitGroup("Rebels");
-                this.empire = this.initUnitGroup("Empire");
-                this.recordLabel = this.game.add.text(game.world.centerX, 30, "Current Leader", { font: "10pt Arial Black", fill: "#999999", stroke: "#000000", strokeThickness: 3 });
-                this.recordLabel.anchor.set(0.5);
-                this.recordText = this.game.add.text(game.world.centerX, 60, "Jeroen Derwort", { font: "20pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
-                this.recordText.anchor.set(0.5);
             };
             Arena.prototype.update = function () {
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.DELETE)) {
@@ -335,12 +373,17 @@ var FacebookWarGame;
                 }
                 this.game.physics.arcade.overlap(this.bulletsEmpire, this.rebels, this.rebelHit, undefined, this);
                 this.game.physics.arcade.overlap(this.bulletsRebels, this.empire, this.empireHit, undefined, this);
+                this.timerText.text = this.countDownTimer.getTimer();
+                if (this.countDownTimer.timerExpired())
+                    this.roundEnd();
             };
             Arena.prototype.addEmpireUnit = function (user) {
-                return this.addUnit(user, this.empire, this.world.width - 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(this.world.width * 0.75 + Math.random() * this.world.width * 0.25), Math.floor(Math.random() * this.world.height - 1) + 1);
+                var health = 110;
+                return this.addUnit(user, health, this.empire, this.world.width - 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(this.world.width * 0.75 + Math.random() * this.world.width * 0.25), Math.floor(Math.random() * this.world.height - 1) + 1);
             };
             Arena.prototype.addRebelsUnit = function (user) {
-                return this.addUnit(user, this.rebels, 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(Math.random() * this.world.width * 0.25) + 1, Math.floor(Math.random() * this.world.height - 1) + 1);
+                var health = 110;
+                return this.addUnit(user, health, this.rebels, 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(Math.random() * this.world.width * 0.25) + 1, Math.floor(Math.random() * this.world.height - 1) + 1);
             };
             Arena.prototype.addUnitForUser = function (user) {
                 if (Client.MechLib.isEmpire(user.faction))
@@ -348,11 +391,13 @@ var FacebookWarGame;
                 else
                     this.addRebelsUnit(user);
             };
-            Arena.prototype.addUnit = function (user, units, startX, startY, destX, destY) {
+            Arena.prototype.addUnit = function (user, health, units, startX, startY, destX, destY) {
                 var unit = units.getFirstExists(false, true);
+                unit.user = user;
                 unit.reset(startX, startY);
                 unit.anchor.setTo(0.5);
                 unit.name = user.name;
+                unit.health = health;
                 unit.destination = new Phaser.Point(destX, destY);
                 return unit;
             };
@@ -363,14 +408,36 @@ var FacebookWarGame;
                 this.unitHit(bullet, unit);
             };
             Arena.prototype.unitHit = function (bullet, unit) {
-                this.game.debug.text(unit.name + " was destroyed. " + bullet.firedBy.name + " scored a kill!", 0, this.world.height - 8, "white");
                 bullet.kill();
-                unit.name = "";
-                unit.kill();
-                this.explodingSound[Math.floor(Math.random() * this.explodingSound.length)].play();
-                var explosion = this.explosions.getFirstExists(false);
-                explosion.reset(unit.body.x, unit.body.y);
-                explosion.play("Explosion", 30, false, true);
+                unit.health -= 25;
+                if (unit.health <= 0) {
+                    var destroyedText = unit.name + " was destroyed. ";
+                    var killText = ((bullet.firedBy.name != "") ? bullet.firedBy.name + " scored a kill!" : "");
+                    this.game.debug.text(destroyedText + killText, 0, this.world.height - 8, "white");
+                    unit.name = "";
+                    unit.kill();
+                    this.explodingSound[Math.floor(Math.random() * (this.explodingSound.length - 1)) + 1].play();
+                    var explosion = this.explosions.getFirstExists(false);
+                    explosion.scale = new Phaser.Point(1, 1);
+                    explosion.reset(unit.body.x, unit.body.y);
+                    explosion.play("Explosion", 30, false, true);
+                    if (bullet.firedBy.user != undefined) {
+                        bullet.firedBy.user.score++;
+                        if (bullet.firedBy.user.score > this.leader.score) {
+                            this.leader = bullet.firedBy.user;
+                            this.leaderNameText.text = this.leader.name;
+                            this.leaderFactionText.text = this.leader.faction;
+                            this.leaderScoreText.text = this.leader.score.toString();
+                        }
+                    }
+                }
+                else {
+                    this.explodingSound[0].play("", 0, 0.5);
+                    var explosion = this.explosions.getFirstExists(false);
+                    explosion.scale = new Phaser.Point(0.2, 0.2);
+                    explosion.reset(bullet.body.x, bullet.body.y);
+                    explosion.play("Explosion", 60, false, true);
+                }
             };
             Arena.prototype.initUnitGroup = function (faction) {
                 var unitGroup = this.add.group();
@@ -403,6 +470,9 @@ var FacebookWarGame;
                 bullets.setAll("exists", false);
                 return bullets;
             };
+            Arena.prototype.roundEnd = function () {
+                this.game.state.start("RoundStart", true, false);
+            };
             return Arena;
         }(Phaser.State));
         Client.Arena = Arena;
@@ -423,6 +493,7 @@ var FacebookWarGame;
                 this.load.tilemap("arena", "./assets/sprites/arena.json", undefined, Phaser.Tilemap.TILED_JSON);
                 this.load.image("ground", "./assets/sprites/ground_tiles.png");
                 this.load.image("bullet", "./assets/sprites/bullet.png");
+                this.load.image("roundBackground", "./assets/ui/roundBackground.png");
                 for (var i = 1; i <= 5; i++) {
                     this.load.audio("explosion" + i.toString(), "./assets/sounds/Explosion" + i.toString() + ".mp3", true);
                 }
@@ -442,6 +513,35 @@ var FacebookWarGame;
             return Preloader;
         }(Phaser.State));
         Client.Preloader = Preloader;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
+        var RoundStart = (function (_super) {
+            __extends(RoundStart, _super);
+            function RoundStart() {
+                _super.apply(this, arguments);
+            }
+            RoundStart.prototype.create = function () {
+                this.background = this.add.tileSprite(0, 0, 1280, 800, 'roundBackground');
+                this.background.alpha = 0;
+                this.add.tween(this.background).to({ alpha: 1 }, 500, Phaser.Easing.Linear.None, true);
+                this.game.debug.text("Click to start the game", 0, this.world.height, "red");
+                this.input.onDown.addOnce(this.fadeOut, this);
+            };
+            RoundStart.prototype.fadeOut = function () {
+                this.add.audio('click', 1, false).play();
+                var tween = this.add.tween(this.background).to({ alpha: 0 }, 2000, Phaser.Easing.Linear.None, true);
+                tween.onComplete.add(this.startGame, this);
+            };
+            RoundStart.prototype.startGame = function () {
+                this.game.state.start('Arena', true, false);
+            };
+            return RoundStart;
+        }(Phaser.State));
+        Client.RoundStart = RoundStart;
     })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
 })(FacebookWarGame || (FacebookWarGame = {}));
 //# sourceMappingURL=game.js.map

@@ -50,8 +50,10 @@
         }
 
         update(): void {
+            let mechSpeed: number = 80;
+            let healthRate: number = 0;
+
             if (this.alive && this.x > 0 && this.y > 0) {
-                let mechSpeed: number = 80;
 
                 if (Math.floor(this.destination.x / mechSpeed) < Math.floor(this.x / mechSpeed)) {
                     this.direction = Direction.Left;
@@ -98,6 +100,9 @@
 
                 this.nameLabel.x = this.x;
                 this.nameLabel.y = this.y - 48;
+
+                if (this.health < 100)
+                    this.health += healthRate;
             }
         }
 
