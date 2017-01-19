@@ -7,6 +7,19 @@ declare module FacebookWarGame.Client {
 declare let game: FacebookWarGame.Client.GameEngine;
 declare function addUnit(name: string, faction: string): void;
 declare module FacebookWarGame.Client {
+    class CountDownTimer {
+        endTime: number;
+        hours: number;
+        mins: number;
+        time: Date;
+        constructor(minutes: number, seconds: number);
+        getTimer(): string;
+        getSecondsLeft(): number;
+        timerExpired(): boolean;
+        private twoDigits(n);
+    }
+}
+declare module FacebookWarGame.Client {
     enum Direction {
         Up = 1,
         Right = 2,
@@ -18,16 +31,6 @@ declare module FacebookWarGame.Client {
     class MechLib {
         static isRebels(faction: string): boolean;
         static isEmpire(faction: string): boolean;
-    }
-    class CountDownTimer {
-        endTime: number;
-        hours: number;
-        mins: number;
-        time: Date;
-        constructor(minutes: number, seconds: number);
-        getTimer(): string;
-        timerExpired(): boolean;
-        private twoDigits(n);
     }
 }
 declare module FacebookWarGame.Client {
@@ -78,7 +81,7 @@ declare module FacebookWarGame.Client {
 }
 declare module FacebookWarGame.Client {
     class Arena extends Phaser.State {
-        music: Phaser.Sound;
+        bgm: Phaser.Sound;
         rebels: Phaser.Group;
         empire: Phaser.Group;
         map: Phaser.Tilemap;
@@ -88,7 +91,6 @@ declare module FacebookWarGame.Client {
         leaderFactionText: Phaser.Text;
         leaderScoreText: Phaser.Text;
         timerText: Phaser.Text;
-        timeLeft: number;
         bulletsRebels: Phaser.Group;
         bulletsEmpire: Phaser.Group;
         explosions: Phaser.Group;
@@ -105,7 +107,8 @@ declare module FacebookWarGame.Client {
         private unitHit(bullet, unit);
         private initUnitGroup(faction);
         private initBulletGroup(faction);
-        roundEnd(): void;
+        startMusic(): void;
+        roundNext(): void;
     }
 }
 declare module FacebookWarGame.Client {
@@ -119,7 +122,17 @@ declare module FacebookWarGame.Client {
 declare module FacebookWarGame.Client {
     class RoundStart extends Phaser.State {
         background: Phaser.TileSprite;
+        countDownTimer: CountDownTimer;
+        leader: User;
+        leaderLabelText: Phaser.Text;
+        leaderNameText: Phaser.Text;
+        leaderFactionText: Phaser.Text;
+        leaderScoreText: Phaser.Text;
+        timerText: Phaser.Text;
+        secondsLeft: number;
+        init(leader: User): void;
         create(): void;
+        update(): void;
         fadeOut(): void;
         startGame(): void;
     }

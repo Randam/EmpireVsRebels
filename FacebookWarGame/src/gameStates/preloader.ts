@@ -16,8 +16,12 @@
                 this.load.audio("explosion" + i.toString(), "./assets/sounds/Explosion" + i.toString() + ".mp3", true);
             }
 
+            this.load.audio("timer", "./assets/sounds/Timer.wav", true);
             this.load.audio("step", "./assets/sounds/step3.wav", true);
             this.load.audio("laser", "./assets/sounds/laser2.wav", true);
+            this.load.audio("clapping", "./assets/sounds/Clapping.wav", true);
+            this.load.audio("start", "./assets/sounds/StartRound.wav", true);
+            this.load.audio("bgm", "./assets/sounds/Destroyed.mp3", true);
 
             this.load.atlasJSONArray("MechRebels", "./assets/sprites/Mech1.png", "./assets/sprites/Mech1.json");
             this.load.atlasJSONArray("MechEmpire", "./assets/sprites/Mech2.png", "./assets/sprites/Mech2.json");

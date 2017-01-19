@@ -67,6 +67,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="scripts\typings\jinqJs\jinqJs.d.ts" />
     <TypeScriptCompile Include="src\game.ts" />
+    <TypeScriptCompile Include="src\gameLib\countDownTimer.ts" />
     <TypeScriptCompile Include="src\gameLib\types.ts" />
     <TypeScriptCompile Include="src\gameLib\mechLib.ts" />
     <TypeScriptCompile Include="src\gameLib\users.ts" />
