@@ -482,16 +482,17 @@ var FacebookWarGame;
             Arena.prototype.create = function () {
                 this.physics.startSystem(Phaser.Physics.ARCADE);
                 this.map = game.add.tilemap("arena");
-                this.map.addTilesetImage("ground_tiles", "ground", 32, 32);
-                var layer = this.map.createLayer("ground_layer");
+                this.map.addTilesetImage("mountain_landscape", "ground", 32, 32);
+                var ground_layer = this.map.createLayer("ground_layer");
+                var top_layer = this.map.createLayer("top_layer");
                 this.countDownTimer = new Client.CountDownTimer(10, 0);
                 this.leader = new Client.User("Annemarie Derwort-Steinvoort", "empire", "");
                 this.leader.score = 0;
-                this.leaderLabelText = this.game.add.text(game.world.centerX - 200, 70, "Current Leader", { font: "12pt Arial Black", fill: "#999999", stroke: "#000000", strokeThickness: 3 });
-                this.leaderNameText = this.game.add.text(game.world.centerX - 200, 94, this.leader.name, { font: "18pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
-                this.leaderFactionText = this.game.add.text(game.world.centerX - 200, 130, this.leader.faction.toUpperCase(), { font: "12pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
-                this.leaderScoreText = this.game.add.text(game.world.centerX + 214, 130, "Kills: " + this.leader.score.toString(), { font: "12pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
-                this.timerText = this.game.add.text(game.world.centerX + 214, 166, this.countDownTimer.getTimer(), { font: "10pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
+                this.leaderLabelText = this.game.add.text(game.world.centerX - 200, 70 - 14, "Current Leader", { font: "12pt Arial Black", fill: "#999999", stroke: "#000000", strokeThickness: 3 });
+                this.leaderNameText = this.game.add.text(game.world.centerX - 200, 94 - 14, this.leader.name, { font: "18pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
+                this.leaderFactionText = this.game.add.text(game.world.centerX - 200, 130 - 14, this.leader.faction.toUpperCase(), { font: "12pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
+                this.leaderScoreText = this.game.add.text(game.world.centerX + 214, 130 - 14, "Kills: " + this.leader.score.toString(), { font: "12pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
+                this.timerText = this.game.add.text(game.world.centerX + 214, 166 - 14, this.countDownTimer.getTimer(), { font: "10pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
                 this.leaderLabelText.anchor.set(0);
                 this.leaderNameText.anchor.set(0);
                 this.leaderFactionText.anchor.set(0);
@@ -509,7 +510,7 @@ var FacebookWarGame;
                 }
                 this.bgm = this.add.sound("bgm", 0.5, true);
                 this.bgm.onDecoded.add(this.startMusic, this);
-                this.add.sound("start");
+                this.add.sound("start", 0);
                 this.sound.play("start");
                 Client.User.clearUserData();
             };
@@ -637,7 +638,9 @@ var FacebookWarGame;
                 return bullets;
             };
             Arena.prototype.startMusic = function () {
-                this.bgm.fadeIn(1000);
+                this.bgm.volume = 0.5;
+                this.bgm.loop = true;
+                this.bgm.play();
             };
             Arena.prototype.roundNext = function () {
                 var leader = this.leader;
@@ -661,7 +664,7 @@ var FacebookWarGame;
                 this.loaderText = this.game.add.text(this.world.centerX, 200, "Loading the battlefield...", { font: "18px Arial", fill: "#A9A91111", align: "center" });
                 this.loaderText.anchor.setTo(0.5);
                 this.load.tilemap("arena", "./assets/sprites/arena.json", undefined, Phaser.Tilemap.TILED_JSON);
-                this.load.image("ground", "./assets/sprites/ground_tiles.png");
+                this.load.image("ground", "./assets/sprites/mountain_landscape.png");
                 this.load.image("bullet", "./assets/sprites/bullet.png");
                 this.load.image("roundBackground", "./assets/ui/roundBackground.png");
                 for (var i = 1; i <= 5; i++) {

@@ -8,7 +8,7 @@
             this.loaderText.anchor.setTo(0.5);
 
             this.load.tilemap("arena", "./assets/sprites/arena.json", undefined, Phaser.Tilemap.TILED_JSON);
-            this.load.image("ground", "./assets/sprites/ground_tiles.png");
+            this.load.image("ground", "./assets/sprites/mountain_landscape.png");
             this.load.image("bullet", "./assets/sprites/bullet.png");
             this.load.image("roundBackground", "./assets/ui/roundBackground.png");
 
