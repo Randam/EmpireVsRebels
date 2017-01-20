@@ -23,11 +23,12 @@ var FacebookWarGame;
         Client.GameEngine = GameEngine;
     })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
 })(FacebookWarGame || (FacebookWarGame = {}));
+var access_token = '1850233771859903|UZReV_K_e2zP6w7y7xxOgfyNauU'; // PASTE HERE YOUR FACEBOOK ACCESS TOKEN
+var pageId = '314813142252248'; // PAST HERE YOUR PAGE ID
+var postId = '325905601143002'; // PASTE HERE YOUR POST ID  
 var game = null;
-function addUnit(name, faction) {
-    var user = FacebookWarGame.Client.User.list.filter(function (ul) {
-        return ul.name == name;
-    })[0];
+function addUnit(name, fbId, faction) {
+    var user = FacebookWarGame.Client.User.findById(fbId);
     if (user === undefined) {
         user = new FacebookWarGame.Client.User(name, faction, undefined);
         FacebookWarGame.Client.User.list.push(user);
@@ -36,7 +37,38 @@ function addUnit(name, faction) {
 }
 window.onload = function () {
     game = new FacebookWarGame.Client.GameEngine();
+    setInterval(processFacebookData, 4000);
+    //processFacebookData();
 };
+function processFacebookData() {
+    // check for new comments containing a faction, and add a user to the game if he hasn't been added already
+    FacebookWarGame.Client.FacebookComment.refreshList(pageId, postId, access_token);
+    $.each(FacebookWarGame.Client.FacebookComment.list, function (index, comment) {
+        if (comment.refreshId === FacebookWarGame.Client.FacebookComment.refreshId) {
+            if (comment.isFaction()) {
+                if (FacebookWarGame.Client.User.findById(comment.fromId) === undefined) {
+                    var user = new FacebookWarGame.Client.User(comment.fromName, comment.getFaction(), comment.fromId);
+                    game.state.states.Arena.addUnitForUser(user);
+                }
+            }
+        }
+    });
+    // check for unique tags, and add/respawn a user if he has tagged someone and was previously in the game
+    FacebookWarGame.Client.FacebookTag.refreshList(access_token);
+    $.each(FacebookWarGame.Client.FacebookTag.list, function (index, tag) {
+        if (tag.refreshId === FacebookWarGame.Client.FacebookComment.refreshId) {
+            if (FacebookWarGame.Client.User.findById(tag.userId) !== undefined) {
+                var comment = FacebookWarGame.Client.FacebookComment.findByFromId(tag.userId);
+                if (comment === undefined) {
+                    var user = FacebookWarGame.Client.User.findById(comment.fromId);
+                    if (user !== undefined) {
+                        game.state.states.Arena.addUnitForUser(user);
+                    }
+                }
+            }
+        }
+    });
+}
 var FacebookWarGame;
 (function (FacebookWarGame) {
     var Client;
@@ -94,10 +126,10 @@ var FacebookWarGame;
             function MechLib() {
             }
             MechLib.isRebels = function (faction) {
-                return (faction === "Rebels");
+                return (faction === "rebels");
             };
             MechLib.isEmpire = function (faction) {
-                return (faction === "Empire");
+                return (faction === "empire");
             };
             return MechLib;
         }());
@@ -117,10 +149,118 @@ var FacebookWarGame;
                 this.respawns = 0;
                 this.kills = 0;
             }
+            User.findById = function (fbId) {
+                return User.list.filter(function (ul) {
+                    return ul.fbId == fbId;
+                })[0];
+            };
+            User.findByName = function (name) {
+                return User.list.filter(function (ul) {
+                    return ul.name == name;
+                })[0];
+            };
+            User.clearUserData = function () {
+                User.list.length = 0;
+            };
             User.list = [];
             return User;
         }());
         Client.User = User;
+        var FacebookComment = (function () {
+            function FacebookComment() {
+            }
+            FacebookComment.prototype.getFaction = function () {
+                if (this.isFaction()) {
+                    return this.message.toLowerCase();
+                }
+                else {
+                    return "";
+                }
+            };
+            FacebookComment.prototype.isFaction = function () {
+                var faction = this.message.toLowerCase();
+                return (faction == "rebels" || faction == "empire");
+            };
+            FacebookComment.refreshList = function (pageId, postId, access_token) {
+                var url = 'https://graph.facebook.com/v2.8/?ids=' + pageId + "_" + postId + '&fields=comments&access_token=' + access_token;
+                FacebookComment.refreshId++;
+                $.ajaxSetup({ 'async': false });
+                $.getJSON(url, function (result) {
+                    result = result[pageId + "_" + postId].comments.data;
+                    FacebookComment.addRecordsFromJSON(result);
+                });
+            };
+            FacebookComment.addRecordsFromJSON = function (jsonResult) {
+                $.each(jsonResult, function (index, obj) {
+                    var fbComment = new FacebookComment();
+                    fbComment.created_time = obj.created_time;
+                    fbComment.fromId = obj.from.id;
+                    fbComment.fromName = obj.from.name;
+                    fbComment.id = obj.id;
+                    fbComment.message = obj.message;
+                    fbComment.refreshId = FacebookComment.refreshId;
+                    if (FacebookComment.findById(fbComment.id) == undefined) {
+                        FacebookComment.list.push(fbComment);
+                    }
+                });
+            };
+            // get the new facebook comments since the last refresh
+            FacebookComment.getNew = function () {
+                return FacebookComment.list.filter(function (ul) {
+                    return ul.refreshId == FacebookComment.refreshId;
+                });
+            };
+            FacebookComment.findByFromId = function (fromId) {
+                return FacebookComment.list.filter(function (ul) {
+                    return ul.fromId == fromId;
+                })[0];
+            };
+            FacebookComment.findById = function (id) {
+                return FacebookComment.list.filter(function (ul) {
+                    return ul.id == id;
+                })[0];
+            };
+            FacebookComment.list = [];
+            FacebookComment.refreshId = 0;
+            return FacebookComment;
+        }());
+        Client.FacebookComment = FacebookComment;
+        var FacebookTag = (function () {
+            function FacebookTag(userId, tagId, refreshId) {
+                this.userId = userId;
+                this.tagId = tagId;
+                this.refreshId = refreshId;
+            }
+            FacebookTag.exists = function (taggedId) {
+                return (FacebookTag.list.filter(function (ul) {
+                    return (ul.tagId == taggedId);
+                })).length > 0;
+            };
+            FacebookTag.refreshList = function (access_token) {
+                // check new facebook comments for tags
+                var comments = FacebookComment.getNew();
+                var commentIds = [];
+                $.each(comments, function (index, obj) {
+                    if (obj.message.length > 5)
+                        commentIds.push(obj.id);
+                });
+                if (commentIds.length > 0) {
+                    var url = "https://graph.facebook.com/v2.8/?ids=" + commentIds.join(",") + "&fields=message_tags&access_token=" + access_token;
+                    $.getJSON(url, function (res) {
+                        console.log(res.data);
+                        $.each(res, function (index, obj) {
+                            if (!FacebookTag.exists(obj.message_tags[0].id)) {
+                                var userId = FacebookComment.findById(obj.id).fromId;
+                                FacebookTag.list.push(new FacebookTag(userId, obj.message_tags[0].id, FacebookComment.refreshId));
+                            }
+                        });
+                    });
+                }
+            };
+            FacebookTag.list = [];
+            return FacebookTag;
+        }());
+        Client.FacebookTag = FacebookTag;
     })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
 })(FacebookWarGame || (FacebookWarGame = {}));
 var FacebookWarGame;
@@ -144,7 +284,7 @@ var FacebookWarGame;
         var Player = (function (_super) {
             __extends(Player, _super);
             function Player(faction, game, x, y, bullets) {
-                _super.call(this, game, x, y, "Mech" + faction, 1);
+                _super.call(this, game, x, y, "Mech" + (faction == "rebels" ? "Rebels" : "Empire"), 1);
                 this.faction = faction;
                 this.game = game;
                 this.bullets = bullets;
@@ -344,8 +484,8 @@ var FacebookWarGame;
                 this.map = game.add.tilemap("arena");
                 this.map.addTilesetImage("ground_tiles", "ground", 32, 32);
                 var layer = this.map.createLayer("ground_layer");
-                this.countDownTimer = new Client.CountDownTimer(0, 3);
-                this.leader = new Client.User("Annemarie Derwort-Steinvoort", "Empire", "");
+                this.countDownTimer = new Client.CountDownTimer(10, 0);
+                this.leader = new Client.User("Annemarie Derwort-Steinvoort", "empire", "");
                 this.leader.score = 0;
                 this.leaderLabelText = this.game.add.text(game.world.centerX - 200, 70, "Current Leader", { font: "12pt Arial Black", fill: "#999999", stroke: "#000000", strokeThickness: 3 });
                 this.leaderNameText = this.game.add.text(game.world.centerX - 200, 94, this.leader.name, { font: "18pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
@@ -357,10 +497,10 @@ var FacebookWarGame;
                 this.leaderFactionText.anchor.set(0);
                 this.leaderScoreText.anchor.set(1, 0);
                 this.timerText.anchor.set(1, 0);
-                this.bulletsRebels = this.initBulletGroup("Rebels");
-                this.bulletsEmpire = this.initBulletGroup("Empire");
-                this.rebels = this.initUnitGroup("Rebels");
-                this.empire = this.initUnitGroup("Empire");
+                this.bulletsRebels = this.initBulletGroup("rebels");
+                this.bulletsEmpire = this.initBulletGroup("empire");
+                this.rebels = this.initUnitGroup("rebels");
+                this.empire = this.initUnitGroup("empire");
                 this.explosions = this.add.group();
                 this.explosions.createMultiple(60, "Explosion");
                 this.explosions.callAll("animations.add", "animations", "Explosion", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 20, true);
@@ -371,6 +511,7 @@ var FacebookWarGame;
                 this.bgm.onDecoded.add(this.startMusic, this);
                 this.add.sound("start");
                 this.sound.play("start");
+                Client.User.clearUserData();
             };
             Arena.prototype.update = function () {
                 if (this.countDownTimer.timerExpired()) {
@@ -381,10 +522,10 @@ var FacebookWarGame;
                 else {
                     this.timerText.text = "Round ends in: " + this.countDownTimer.getTimer();
                     if (this.game.input.keyboard.isDown(Phaser.Keyboard.DELETE)) {
-                        this.addEmpireUnit(new Client.User("Empire Robot", "Empire"));
+                        this.addEmpireUnit(new Client.User("Empire Robot", "empire"));
                     }
                     if (this.game.input.keyboard.isDown(Phaser.Keyboard.INSERT)) {
-                        this.addRebelsUnit(new Client.User("Rebel Mech", "Rebels"));
+                        this.addRebelsUnit(new Client.User("Rebel Mech", "rebels"));
                     }
                     if (this.empire.countLiving() === 0) {
                         this.rebels.setAll("bulletsToFire", 0);
@@ -411,14 +552,20 @@ var FacebookWarGame;
                     this.addRebelsUnit(user);
             };
             Arena.prototype.addUnit = function (user, health, units, startX, startY, destX, destY) {
-                var unit = units.getFirstExists(false, true);
-                unit.user = user;
-                unit.reset(startX, startY);
-                unit.anchor.setTo(0.5);
-                unit.name = user.name;
-                unit.health = health;
-                unit.destination = new Phaser.Point(destX, destY);
-                return unit;
+                var existingUnits = units.filter(function (child, index, children) {
+                    return (child.name == user.name);
+                }, true);
+                if (existingUnits.total == 0) {
+                    var unit = units.getFirstExists(false, true);
+                    unit.user = user;
+                    unit.reset(startX, startY);
+                    unit.anchor.setTo(0.5);
+                    unit.name = user.name;
+                    unit.health = health;
+                    unit.destination = new Phaser.Point(destX, destY);
+                    return unit;
+                }
+                return existingUnits[0];
             };
             Arena.prototype.rebelHit = function (bullet, unit) {
                 this.unitHit(bullet, unit);

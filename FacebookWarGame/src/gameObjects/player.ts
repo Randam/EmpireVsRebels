@@ -16,7 +16,7 @@
         private score: number;
 
         constructor(faction: string, game: Phaser.Game, x: number, y: number, bullets: Phaser.Group) {
-            super(game, x, y, "Mech" + faction, 1);
+            super(game, x, y, "Mech" + (faction == "rebels" ? "Rebels" : "Empire"), 1);
             this.faction = faction;
             this.game = game;
             this.bullets = bullets;

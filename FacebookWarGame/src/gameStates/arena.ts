@@ -27,9 +27,9 @@
             this.map.addTilesetImage("ground_tiles", "ground", 32, 32);
             let layer: Phaser.TilemapLayer = this.map.createLayer("ground_layer");
 
-            this.countDownTimer = new CountDownTimer(0, 3);
+            this.countDownTimer = new CountDownTimer(10, 0);
 
-            this.leader = new User("Annemarie Derwort-Steinvoort", "Empire", "");
+            this.leader = new User("Annemarie Derwort-Steinvoort", "empire", "");
             this.leader.score = 0;
 
             this.leaderLabelText = this.game.add.text(game.world.centerX - 200, 70, "Current Leader", { font: "12pt Arial Black", fill: "#999999", stroke: "#000000", strokeThickness: 3 });
@@ -43,11 +43,11 @@
             this.leaderScoreText.anchor.set(1, 0);
             this.timerText.anchor.set(1, 0);
 
-            this.bulletsRebels = this.initBulletGroup("Rebels");
-            this.bulletsEmpire = this.initBulletGroup("Empire");
+            this.bulletsRebels = this.initBulletGroup("rebels");
+            this.bulletsEmpire = this.initBulletGroup("empire");
 
-            this.rebels = this.initUnitGroup("Rebels");
-            this.empire = this.initUnitGroup("Empire");
+            this.rebels = this.initUnitGroup("rebels");
+            this.empire = this.initUnitGroup("empire");
 
             this.explosions = this.add.group();
             this.explosions.createMultiple(60, "Explosion");
@@ -67,6 +67,8 @@
 
             this.add.sound("start");
             this.sound.play("start");
+
+            User.clearUserData();
         }
 
         update(): void {
@@ -79,11 +81,11 @@
                 this.timerText.text = "Round ends in: " + this.countDownTimer.getTimer();
 
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.DELETE)) {
-                this.addEmpireUnit(new User("Empire Robot", "Empire"));
+                this.addEmpireUnit(new User("Empire Robot", "empire"));
                 }
 
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.INSERT)) {
-                    this.addRebelsUnit(new User("Rebel Mech", "Rebels"));
+                    this.addRebelsUnit(new User("Rebel Mech", "rebels"));
                 }
 
                 if (this.empire.countLiving() === 0) {
@@ -131,15 +133,24 @@
         }
 
         private addUnit(user: User, health: number, units: Phaser.Group, startX: number, startY: number, destX: number, destY: number): Player {
-            let unit: Player = units.getFirstExists(false, true);
-            unit.user = user;
-            unit.reset(startX, startY);
-            unit.anchor.setTo(0.5);
-            unit.name = user.name;
-            unit.health = health;
-            unit.destination = new Phaser.Point(destX, destY);
+            let existingUnits = units.filter(function (child, index, children) {
+                return (child.name == user.name);
+            }, true);
 
-            return unit;
+            if (existingUnits.total == 0) {
+
+                let unit: Player = units.getFirstExists(false, true);
+                unit.user = user;
+                unit.reset(startX, startY);
+                unit.anchor.setTo(0.5);
+                unit.name = user.name;
+                unit.health = health;
+                unit.destination = new Phaser.Point(destX, destY);
+
+                return unit;
+            }
+
+            return existingUnits[0];
         }
 
         private rebelHit(bullet: Bullet, unit: Player): void {
