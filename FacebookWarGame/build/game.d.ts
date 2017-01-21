@@ -162,6 +162,32 @@ interface JSON {
     StringifyNonCircular(obj: any): string;
 }
 declare module FacebookWarGame.Client {
+    class GameEngine extends Phaser.Game {
+        constructor();
+    }
+}
+declare let access_token: string;
+declare let pageId: string;
+declare let postId: string;
+declare let refreshId: number;
+declare let game: FacebookWarGame.Client.GameEngine;
+declare function addUnit(name: string, fbId: string, faction: string): void;
+declare function processFacebookData(): void;
+declare function updateGame(): void;
+declare module FacebookWarGame.Client {
+    class CountDownTimer {
+        endTime: number;
+        hours: number;
+        mins: number;
+        time: Date;
+        constructor(minutes: number, seconds: number);
+        getTimer(): string;
+        getSecondsLeft(): number;
+        timerExpired(): boolean;
+        private twoDigits(n);
+    }
+}
+declare module FacebookWarGame.Client {
     class FacebookComment {
         static list: Array<FacebookComment>;
         static updated: boolean;
@@ -193,6 +219,20 @@ declare module FacebookWarGame.Client {
     }
 }
 declare module FacebookWarGame.Client {
+    enum Direction {
+        Up = 1,
+        Right = 2,
+        Down = 3,
+        Left = 4,
+    }
+}
+declare module FacebookWarGame.Client {
+    class MechLib {
+        static isRebels(faction: string): boolean;
+        static isEmpire(faction: string): boolean;
+    }
+}
+declare module FacebookWarGame.Client {
     class User {
         static list: Array<User>;
         name: string;
@@ -205,46 +245,6 @@ declare module FacebookWarGame.Client {
         static findById(fbId: string): User;
         static findByName(name: string): User;
         static clearUserData(): void;
-    }
-}
-declare module FacebookWarGame.Client {
-    class GameEngine extends Phaser.Game {
-        constructor();
-    }
-}
-declare let access_token: string;
-declare let pageId: string;
-declare let postId: string;
-declare let refreshId: number;
-declare let game: FacebookWarGame.Client.GameEngine;
-declare function addUnit(name: string, fbId: string, faction: string): void;
-declare function processFacebookData(): void;
-declare function updateGame(): void;
-declare module FacebookWarGame.Client {
-    class CountDownTimer {
-        endTime: number;
-        hours: number;
-        mins: number;
-        time: Date;
-        constructor(minutes: number, seconds: number);
-        getTimer(): string;
-        getSecondsLeft(): number;
-        timerExpired(): boolean;
-        private twoDigits(n);
-    }
-}
-declare module FacebookWarGame.Client {
-    class MechLib {
-        static isRebels(faction: string): boolean;
-        static isEmpire(faction: string): boolean;
-    }
-}
-declare module FacebookWarGame.Client {
-    enum Direction {
-        Up = 1,
-        Right = 2,
-        Down = 3,
-        Left = 4,
     }
 }
 declare module FacebookWarGame.Client {
@@ -273,6 +273,12 @@ declare module FacebookWarGame.Client {
         private destinationReached();
         private setNewDestination();
         private fireBullet();
+    }
+}
+declare module FacebookWarGame.Client {
+    class Boot extends Phaser.State {
+        preload(): void;
+        create(): void;
     }
 }
 declare module FacebookWarGame.Client {
@@ -305,12 +311,6 @@ declare module FacebookWarGame.Client {
         private initBulletGroup(faction);
         startMusic(): void;
         roundNext(): void;
-    }
-}
-declare module FacebookWarGame.Client {
-    class Boot extends Phaser.State {
-        preload(): void;
-        create(): void;
     }
 }
 declare module FacebookWarGame.Client {

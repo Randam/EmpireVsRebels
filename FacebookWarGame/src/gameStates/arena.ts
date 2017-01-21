@@ -191,7 +191,7 @@
                 if (bullet.firedBy.user != undefined) {
                     bullet.firedBy.user.score++;
 
-                    if (bullet.firedBy.user.score > this.leader.score) {
+                    if (bullet.firedBy.user.score > this.leader.score || bullet.firedBy.user.name == this.leader.name) {
                         this.leader = bullet.firedBy.user;
                         this.leaderNameText.text = this.leader.name;
                         this.leaderFactionText.text = this.leader.faction;

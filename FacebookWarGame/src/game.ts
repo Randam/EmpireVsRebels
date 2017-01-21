@@ -28,7 +28,7 @@ function addUnit(name: string, fbId: string, faction: string): void {
     let user: FacebookWarGame.Client.User = FacebookWarGame.Client.User.findById(fbId);
 
     if (user === undefined) {
-        user = new FacebookWarGame.Client.User(name, faction, undefined);
+        user = new FacebookWarGame.Client.User(name, faction, fbId);
         FacebookWarGame.Client.User.list.push(user);
     }
 
@@ -38,8 +38,8 @@ function addUnit(name: string, fbId: string, faction: string): void {
 window.onload = () => {
     game = new FacebookWarGame.Client.GameEngine();
 
-    setInterval(processFacebookData, 4000);
-    setInterval(updateGame, 500);
+    //setInterval(processFacebookData, 4000);
+    //setInterval(updateGame, 500);
 };
 
 function processFacebookData() {
