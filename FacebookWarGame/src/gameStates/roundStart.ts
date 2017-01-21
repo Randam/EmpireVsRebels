@@ -37,6 +37,8 @@
             this.add.sound("clapping");
             this.sound.play("clapping");
             this.add.tween(this.background).to({ alpha: 1 }, 500, Phaser.Easing.Linear.None, true);
+
+            User.clearUserData();
         }
 
         update() {

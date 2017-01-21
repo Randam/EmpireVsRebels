@@ -49,7 +49,7 @@ var FacebookWarGame;
             // get the new facebook comments since the last refresh
             FacebookComment.getNew = function (refreshId) {
                 return FacebookComment.list.filter(function (ul) {
-                    return ul.refreshId == refreshId;
+                    return ul.refreshId >= refreshId;
                 });
             };
             FacebookComment.findByFromId = function (fromId) {
@@ -87,9 +87,11 @@ var FacebookWarGame;
             FacebookTag.refreshList = function (access_token, refreshId) {
                 if (FacebookTag.updated)
                     return;
+                if (!Client.FacebookComment.updated)
+                    return;
                 // check new facebook comments for tags
-                //let comments = FacebookComment.getNew(refreshId);
-                var comments = Client.FacebookComment.list;
+                var comments = Client.FacebookComment.getNew(refreshId);
+                //let comments = FacebookComment.list;
                 if (comments.length == 0) {
                     FacebookTag.updated = true;
                     return;
@@ -104,7 +106,7 @@ var FacebookWarGame;
                     $.getJSON(url, function (res) {
                         $.each(res, function (index, obj) {
                             if (obj.message_tags != undefined) {
-                                if (!FacebookTag.exists(obj.message_tags[0].id)) {
+                                if (1 == 1 || !FacebookTag.exists(obj.message_tags[0].id)) {
                                     var userId = Client.FacebookComment.findById(obj.id).fromId;
                                     FacebookTag.list.push(new FacebookTag(userId, obj.message_tags[0].id, refreshId));
                                 }
@@ -204,17 +206,17 @@ function updateGame() {
                 if (comment.isFaction()) {
                     if (FacebookWarGame.Client.User.findById(comment.fromId) === undefined) {
                         var user = new FacebookWarGame.Client.User(comment.fromName, comment.getFaction(), comment.fromId);
+                        FacebookWarGame.Client.User.list.push(user);
                         game.state.states.Arena.addUnitForUser(user);
                     }
                 }
             }
         });
-        FacebookWarGame.Client.FacebookComment.updated = false;
         $.each(FacebookWarGame.Client.FacebookTag.list, function (index, tag) {
             if (tag.refreshId === refreshId) {
                 if (FacebookWarGame.Client.User.findById(tag.userId) !== undefined) {
                     var comment = FacebookWarGame.Client.FacebookComment.findByFromId(tag.userId);
-                    if (comment === undefined) {
+                    if (comment !== undefined) {
                         var user = FacebookWarGame.Client.User.findById(comment.fromId);
                         if (user !== undefined) {
                             game.state.states.Arena.addUnitForUser(user);
@@ -223,6 +225,7 @@ function updateGame() {
                 }
             }
         });
+        FacebookWarGame.Client.FacebookComment.updated = false;
         FacebookWarGame.Client.FacebookTag.updated = false;
         refreshId++;
     }
@@ -506,7 +509,6 @@ var FacebookWarGame;
                 this.bgm.onDecoded.add(this.startMusic, this);
                 this.add.sound("start", 0);
                 this.sound.play("start");
-                Client.User.clearUserData();
             };
             Arena.prototype.update = function () {
                 if (this.countDownTimer.timerExpired()) {
@@ -536,11 +538,11 @@ var FacebookWarGame;
                 }
             };
             Arena.prototype.addEmpireUnit = function (user) {
-                var health = 110;
+                var health = 10; // 110;
                 return this.addUnit(user, health, this.empire, this.world.width - 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(this.world.width * 0.75 + Math.random() * this.world.width * 0.25), Math.floor(Math.random() * this.world.height - 1) + 1);
             };
             Arena.prototype.addRebelsUnit = function (user) {
-                var health = 110;
+                var health = 10; //110;
                 return this.addUnit(user, health, this.rebels, 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(Math.random() * this.world.width * 0.25) + 1, Math.floor(Math.random() * this.world.height - 1) + 1);
             };
             Arena.prototype.addUnitForUser = function (user) {
@@ -756,6 +758,7 @@ var FacebookWarGame;
                 this.add.sound("clapping");
                 this.sound.play("clapping");
                 this.add.tween(this.background).to({ alpha: 1 }, 500, Phaser.Easing.Linear.None, true);
+                Client.User.clearUserData();
             };
             RoundStart.prototype.update = function () {
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {

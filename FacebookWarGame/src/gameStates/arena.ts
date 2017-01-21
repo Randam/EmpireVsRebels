@@ -68,8 +68,6 @@
 
             this.add.sound("start", 0);
             this.sound.play("start");
-
-            User.clearUserData();
         }
 
         update(): void {
@@ -105,7 +103,7 @@
         }
 
         public addEmpireUnit(user: User): Player {
-            let health: number = 110;
+            let health: number = 10; // 110;
 
             return this.addUnit(
                 user,
@@ -118,7 +116,7 @@
         }
 
         public addRebelsUnit(user: User): Player {
-            let health: number = 110;
+            let health: number = 10; //110;
 
             return this.addUnit(
                 user,

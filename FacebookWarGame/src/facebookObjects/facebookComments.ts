@@ -60,7 +60,7 @@
         // get the new facebook comments since the last refresh
         static getNew(refreshId: number): Array<FacebookComment> {
             return FacebookComment.list.filter(function (ul) {
-                return ul.refreshId == refreshId;
+                return ul.refreshId >= refreshId;
             });
         }
 

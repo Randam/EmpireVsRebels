@@ -52,23 +52,24 @@ function processFacebookData() {
 
 function updateGame() {
     if (FacebookWarGame.Client.FacebookComment.updated && FacebookWarGame.Client.FacebookTag.updated) {
+
         $.each(FacebookWarGame.Client.FacebookComment.list, function (index, comment) {
             if (comment.refreshId === refreshId) {
                 if (comment.isFaction()) {
                     if (FacebookWarGame.Client.User.findById(comment.fromId) === undefined) {
                         let user = new FacebookWarGame.Client.User(comment.fromName, comment.getFaction(), comment.fromId);
+                        FacebookWarGame.Client.User.list.push(user);
                         game.state.states.Arena.addUnitForUser(user);
                     }
                 }
             }
         });
-        FacebookWarGame.Client.FacebookComment.updated = false;
 
         $.each(FacebookWarGame.Client.FacebookTag.list, function (index, tag) {
             if (tag.refreshId === refreshId) {
                 if (FacebookWarGame.Client.User.findById(tag.userId) !== undefined) {
                     let comment = FacebookWarGame.Client.FacebookComment.findByFromId(tag.userId);
-                    if (comment === undefined) {
+                    if (comment !== undefined) {
                         let user = FacebookWarGame.Client.User.findById(comment.fromId);
 
                         if (user !== undefined) {
@@ -78,9 +79,9 @@ function updateGame() {
                 }
             }
         });
+
+        FacebookWarGame.Client.FacebookComment.updated = false;
         FacebookWarGame.Client.FacebookTag.updated = false;
-
         refreshId++;
-
     }
 }

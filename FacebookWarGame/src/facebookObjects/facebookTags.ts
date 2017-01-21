@@ -25,9 +25,12 @@
             if (FacebookTag.updated)
                 return;
 
+            if (!FacebookComment.updated)
+                return;
+
             // check new facebook comments for tags
-            //let comments = FacebookComment.getNew(refreshId);
-            let comments = FacebookComment.list;
+            let comments = FacebookComment.getNew(refreshId);
+            //let comments = FacebookComment.list;
 
             if (comments.length == 0) {
                 FacebookTag.updated = true;
@@ -45,7 +48,7 @@
                 $.getJSON(url, function (res) {
                     $.each(res, function (index, obj) {
                         if (obj.message_tags != undefined) {
-                            if (!FacebookTag.exists(obj.message_tags[0].id)) {
+                            if (1 == 1 || !FacebookTag.exists(obj.message_tags[0].id)) {
                                 let userId: string = FacebookComment.findById(obj.id).fromId;
                                 FacebookTag.list.push(new FacebookTag(userId, obj.message_tags[0].id, refreshId));
                             }
