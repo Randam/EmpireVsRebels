@@ -3,6 +3,156 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
+        var FacebookComment = (function () {
+            function FacebookComment() {
+            }
+            FacebookComment.prototype.getFaction = function () {
+                if (this.isFaction()) {
+                    return this.message.toLowerCase();
+                }
+                else {
+                    return "";
+                }
+            };
+            FacebookComment.prototype.isFaction = function () {
+                var faction = this.message.toLowerCase();
+                return (faction == "rebels" || faction == "empire");
+            };
+            FacebookComment.refreshList = function (pageId, postId, access_token, refreshId) {
+                if (FacebookComment.updated)
+                    return;
+                var url = 'https://graph.facebook.com/v2.8/?ids=' + pageId + "_" + postId + '&fields=comments&access_token=' + access_token;
+                $.getJSON(url, function (result) {
+                    result = result[pageId + "_" + postId].comments.data;
+                    FacebookComment.addRecordsFromJSON(result, refreshId);
+                    FacebookComment.updated = true;
+                });
+            };
+            FacebookComment.addRecordsFromJSON = function (jsonResult, refreshId) {
+                $.each(jsonResult, function (index, obj) {
+                    var fbComment = new FacebookComment();
+                    fbComment.created_time = obj.created_time;
+                    fbComment.fromId = obj.from.id;
+                    fbComment.fromName = obj.from.name;
+                    fbComment.id = obj.id;
+                    fbComment.message = obj.message;
+                    fbComment.refreshId = refreshId;
+                    if (FacebookComment.findById(fbComment.id) == undefined) {
+                        FacebookComment.list.push(fbComment);
+                    }
+                });
+            };
+            // get the new facebook comments since the last refresh
+            FacebookComment.getNew = function (refreshId) {
+                return FacebookComment.list.filter(function (ul) {
+                    return ul.refreshId == refreshId;
+                });
+            };
+            FacebookComment.findByFromId = function (fromId) {
+                return FacebookComment.list.filter(function (ul) {
+                    return ul.fromId == fromId;
+                })[0];
+            };
+            FacebookComment.findById = function (id) {
+                return FacebookComment.list.filter(function (ul) {
+                    return ul.id == id;
+                })[0];
+            };
+            FacebookComment.list = [];
+            FacebookComment.updated = false;
+            return FacebookComment;
+        }());
+        Client.FacebookComment = FacebookComment;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
+        var FacebookTag = (function () {
+            function FacebookTag(userId, tagId, refreshId) {
+                this.userId = userId;
+                this.tagId = tagId;
+                this.refreshId = refreshId;
+            }
+            FacebookTag.exists = function (taggedId) {
+                return (FacebookTag.list.filter(function (ul) {
+                    return (ul.tagId == taggedId);
+                })).length > 0;
+            };
+            FacebookTag.refreshList = function (access_token, refreshId) {
+                if (FacebookTag.updated)
+                    return;
+                // check new facebook comments for tags
+                //let comments = FacebookComment.getNew(refreshId);
+                var comments = Client.FacebookComment.list;
+                if (comments.length == 0) {
+                    FacebookTag.updated = true;
+                    return;
+                }
+                var commentIds = [];
+                $.each(comments, function (index, obj) {
+                    if (obj.message.length > 5)
+                        commentIds.push(obj.id);
+                });
+                if (commentIds.length > 0) {
+                    var url = "https://graph.facebook.com/v2.8/?ids=" + commentIds.join(",") + "&fields=message_tags&access_token=" + access_token;
+                    $.getJSON(url, function (res) {
+                        $.each(res, function (index, obj) {
+                            if (obj.message_tags != undefined) {
+                                if (!FacebookTag.exists(obj.message_tags[0].id)) {
+                                    var userId = Client.FacebookComment.findById(obj.id).fromId;
+                                    FacebookTag.list.push(new FacebookTag(userId, obj.message_tags[0].id, refreshId));
+                                }
+                            }
+                        });
+                        FacebookTag.updated = true;
+                    });
+                }
+            };
+            FacebookTag.list = [];
+            FacebookTag.updated = false;
+            return FacebookTag;
+        }());
+        Client.FacebookTag = FacebookTag;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
+        var User = (function () {
+            function User(name, faction, fbId) {
+                this.name = name;
+                this.fbId = fbId;
+                this.faction = faction;
+                this.score = 0;
+                this.respawns = 0;
+                this.kills = 0;
+            }
+            User.findById = function (fbId) {
+                return User.list.filter(function (ul) {
+                    return ul.fbId == fbId;
+                })[0];
+            };
+            User.findByName = function (name) {
+                return User.list.filter(function (ul) {
+                    return ul.name == name;
+                })[0];
+            };
+            User.clearUserData = function () {
+                User.list.length = 0;
+            };
+            User.list = [];
+            return User;
+        }());
+        Client.User = User;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
 /// <reference path="../references.d.ts" />
 var FacebookWarGame;
 (function (FacebookWarGame) {
@@ -24,8 +174,9 @@ var FacebookWarGame;
     })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
 })(FacebookWarGame || (FacebookWarGame = {}));
 var access_token = '1850233771859903|UZReV_K_e2zP6w7y7xxOgfyNauU'; // PASTE HERE YOUR FACEBOOK ACCESS TOKEN
-var pageId = '314813142252248'; // PAST HERE YOUR PAGE ID
+var pageId = '314813142252248'; // PASTE HERE YOUR PAGE ID
 var postId = '325905601143002'; // PASTE HERE YOUR POST ID  
+var refreshId = 0;
 var game = null;
 function addUnit(name, fbId, faction) {
     var user = FacebookWarGame.Client.User.findById(fbId);
@@ -38,36 +189,43 @@ function addUnit(name, fbId, faction) {
 window.onload = function () {
     game = new FacebookWarGame.Client.GameEngine();
     setInterval(processFacebookData, 4000);
-    //processFacebookData();
+    setInterval(updateGame, 500);
 };
 function processFacebookData() {
     // check for new comments containing a faction, and add a user to the game if he hasn't been added already
-    FacebookWarGame.Client.FacebookComment.refreshList(pageId, postId, access_token);
-    $.each(FacebookWarGame.Client.FacebookComment.list, function (index, comment) {
-        if (comment.refreshId === FacebookWarGame.Client.FacebookComment.refreshId) {
-            if (comment.isFaction()) {
-                if (FacebookWarGame.Client.User.findById(comment.fromId) === undefined) {
-                    var user = new FacebookWarGame.Client.User(comment.fromName, comment.getFaction(), comment.fromId);
-                    game.state.states.Arena.addUnitForUser(user);
-                }
-            }
-        }
-    });
+    FacebookWarGame.Client.FacebookComment.refreshList(pageId, postId, access_token, refreshId);
     // check for unique tags, and add/respawn a user if he has tagged someone and was previously in the game
-    FacebookWarGame.Client.FacebookTag.refreshList(access_token);
-    $.each(FacebookWarGame.Client.FacebookTag.list, function (index, tag) {
-        if (tag.refreshId === FacebookWarGame.Client.FacebookComment.refreshId) {
-            if (FacebookWarGame.Client.User.findById(tag.userId) !== undefined) {
-                var comment = FacebookWarGame.Client.FacebookComment.findByFromId(tag.userId);
-                if (comment === undefined) {
-                    var user = FacebookWarGame.Client.User.findById(comment.fromId);
-                    if (user !== undefined) {
+    FacebookWarGame.Client.FacebookTag.refreshList(access_token, refreshId);
+}
+function updateGame() {
+    if (FacebookWarGame.Client.FacebookComment.updated && FacebookWarGame.Client.FacebookTag.updated) {
+        $.each(FacebookWarGame.Client.FacebookComment.list, function (index, comment) {
+            if (comment.refreshId === refreshId) {
+                if (comment.isFaction()) {
+                    if (FacebookWarGame.Client.User.findById(comment.fromId) === undefined) {
+                        var user = new FacebookWarGame.Client.User(comment.fromName, comment.getFaction(), comment.fromId);
                         game.state.states.Arena.addUnitForUser(user);
                     }
                 }
             }
-        }
-    });
+        });
+        FacebookWarGame.Client.FacebookComment.updated = false;
+        $.each(FacebookWarGame.Client.FacebookTag.list, function (index, tag) {
+            if (tag.refreshId === refreshId) {
+                if (FacebookWarGame.Client.User.findById(tag.userId) !== undefined) {
+                    var comment = FacebookWarGame.Client.FacebookComment.findByFromId(tag.userId);
+                    if (comment === undefined) {
+                        var user = FacebookWarGame.Client.User.findById(comment.fromId);
+                        if (user !== undefined) {
+                            game.state.states.Arena.addUnitForUser(user);
+                        }
+                    }
+                }
+            }
+        });
+        FacebookWarGame.Client.FacebookTag.updated = false;
+        refreshId++;
+    }
 }
 var FacebookWarGame;
 (function (FacebookWarGame) {
@@ -109,19 +267,6 @@ var FacebookWarGame;
 (function (FacebookWarGame) {
     var Client;
     (function (Client) {
-        (function (Direction) {
-            Direction[Direction["Up"] = 1] = "Up";
-            Direction[Direction["Right"] = 2] = "Right";
-            Direction[Direction["Down"] = 3] = "Down";
-            Direction[Direction["Left"] = 4] = "Left";
-        })(Client.Direction || (Client.Direction = {}));
-        var Direction = Client.Direction;
-    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
-})(FacebookWarGame || (FacebookWarGame = {}));
-var FacebookWarGame;
-(function (FacebookWarGame) {
-    var Client;
-    (function (Client) {
         var MechLib = (function () {
             function MechLib() {
             }
@@ -140,127 +285,13 @@ var FacebookWarGame;
 (function (FacebookWarGame) {
     var Client;
     (function (Client) {
-        var User = (function () {
-            function User(name, faction, fbId) {
-                this.name = name;
-                this.fbId = fbId;
-                this.faction = faction;
-                this.score = 0;
-                this.respawns = 0;
-                this.kills = 0;
-            }
-            User.findById = function (fbId) {
-                return User.list.filter(function (ul) {
-                    return ul.fbId == fbId;
-                })[0];
-            };
-            User.findByName = function (name) {
-                return User.list.filter(function (ul) {
-                    return ul.name == name;
-                })[0];
-            };
-            User.clearUserData = function () {
-                User.list.length = 0;
-            };
-            User.list = [];
-            return User;
-        }());
-        Client.User = User;
-        var FacebookComment = (function () {
-            function FacebookComment() {
-            }
-            FacebookComment.prototype.getFaction = function () {
-                if (this.isFaction()) {
-                    return this.message.toLowerCase();
-                }
-                else {
-                    return "";
-                }
-            };
-            FacebookComment.prototype.isFaction = function () {
-                var faction = this.message.toLowerCase();
-                return (faction == "rebels" || faction == "empire");
-            };
-            FacebookComment.refreshList = function (pageId, postId, access_token) {
-                var url = 'https://graph.facebook.com/v2.8/?ids=' + pageId + "_" + postId + '&fields=comments&access_token=' + access_token;
-                FacebookComment.refreshId++;
-                $.ajaxSetup({ 'async': false });
-                $.getJSON(url, function (result) {
-                    result = result[pageId + "_" + postId].comments.data;
-                    FacebookComment.addRecordsFromJSON(result);
-                });
-            };
-            FacebookComment.addRecordsFromJSON = function (jsonResult) {
-                $.each(jsonResult, function (index, obj) {
-                    var fbComment = new FacebookComment();
-                    fbComment.created_time = obj.created_time;
-                    fbComment.fromId = obj.from.id;
-                    fbComment.fromName = obj.from.name;
-                    fbComment.id = obj.id;
-                    fbComment.message = obj.message;
-                    fbComment.refreshId = FacebookComment.refreshId;
-                    if (FacebookComment.findById(fbComment.id) == undefined) {
-                        FacebookComment.list.push(fbComment);
-                    }
-                });
-            };
-            // get the new facebook comments since the last refresh
-            FacebookComment.getNew = function () {
-                return FacebookComment.list.filter(function (ul) {
-                    return ul.refreshId == FacebookComment.refreshId;
-                });
-            };
-            FacebookComment.findByFromId = function (fromId) {
-                return FacebookComment.list.filter(function (ul) {
-                    return ul.fromId == fromId;
-                })[0];
-            };
-            FacebookComment.findById = function (id) {
-                return FacebookComment.list.filter(function (ul) {
-                    return ul.id == id;
-                })[0];
-            };
-            FacebookComment.list = [];
-            FacebookComment.refreshId = 0;
-            return FacebookComment;
-        }());
-        Client.FacebookComment = FacebookComment;
-        var FacebookTag = (function () {
-            function FacebookTag(userId, tagId, refreshId) {
-                this.userId = userId;
-                this.tagId = tagId;
-                this.refreshId = refreshId;
-            }
-            FacebookTag.exists = function (taggedId) {
-                return (FacebookTag.list.filter(function (ul) {
-                    return (ul.tagId == taggedId);
-                })).length > 0;
-            };
-            FacebookTag.refreshList = function (access_token) {
-                // check new facebook comments for tags
-                var comments = FacebookComment.getNew();
-                var commentIds = [];
-                $.each(comments, function (index, obj) {
-                    if (obj.message.length > 5)
-                        commentIds.push(obj.id);
-                });
-                if (commentIds.length > 0) {
-                    var url = "https://graph.facebook.com/v2.8/?ids=" + commentIds.join(",") + "&fields=message_tags&access_token=" + access_token;
-                    $.getJSON(url, function (res) {
-                        console.log(res.data);
-                        $.each(res, function (index, obj) {
-                            if (!FacebookTag.exists(obj.message_tags[0].id)) {
-                                var userId = FacebookComment.findById(obj.id).fromId;
-                                FacebookTag.list.push(new FacebookTag(userId, obj.message_tags[0].id, FacebookComment.refreshId));
-                            }
-                        });
-                    });
-                }
-            };
-            FacebookTag.list = [];
-            return FacebookTag;
-        }());
-        Client.FacebookTag = FacebookTag;
+        (function (Direction) {
+            Direction[Direction["Up"] = 1] = "Up";
+            Direction[Direction["Right"] = 2] = "Right";
+            Direction[Direction["Down"] = 3] = "Down";
+            Direction[Direction["Left"] = 4] = "Left";
+        })(Client.Direction || (Client.Direction = {}));
+        var Direction = Client.Direction;
     })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
 })(FacebookWarGame || (FacebookWarGame = {}));
 var FacebookWarGame;
@@ -436,43 +467,6 @@ var FacebookWarGame;
 (function (FacebookWarGame) {
     var Client;
     (function (Client) {
-        var Boot = (function (_super) {
-            __extends(Boot, _super);
-            function Boot() {
-                _super.apply(this, arguments);
-            }
-            Boot.prototype.preload = function () {
-                //You can preload an image here if you dont want to use text for the loading screen
-            };
-            Boot.prototype.create = function () {
-                this.stage.setBackgroundColor(0xFFFFFF);
-                this.input.maxPointers = 1;
-                this.stage.disableVisibilityChange = true;
-                if (this.game.device.desktop) {
-                    this.scale.pageAlignHorizontally = true;
-                }
-                else {
-                    // mobile
-                    //this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-                    this.scale.minWidth = 480;
-                    this.scale.minHeight = 260;
-                    this.scale.maxWidth = 1280;
-                    this.scale.maxHeight = 720;
-                    this.scale.forceLandscape = true;
-                    this.scale.pageAlignHorizontally = true;
-                    this.scale.refresh();
-                }
-                this.game.state.start("Preloader", true, false);
-            };
-            return Boot;
-        }(Phaser.State));
-        Client.Boot = Boot;
-    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
-})(FacebookWarGame || (FacebookWarGame = {}));
-var FacebookWarGame;
-(function (FacebookWarGame) {
-    var Client;
-    (function (Client) {
         var Arena = (function (_super) {
             __extends(Arena, _super);
             function Arena() {
@@ -527,6 +521,9 @@ var FacebookWarGame;
                     }
                     if (this.game.input.keyboard.isDown(Phaser.Keyboard.INSERT)) {
                         this.addRebelsUnit(new Client.User("Rebel Mech", "rebels"));
+                    }
+                    if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
+                        this.countDownTimer = new Client.CountDownTimer(0, 3);
                     }
                     if (this.empire.countLiving() === 0) {
                         this.rebels.setAll("bulletsToFire", 0);
@@ -655,6 +652,43 @@ var FacebookWarGame;
 (function (FacebookWarGame) {
     var Client;
     (function (Client) {
+        var Boot = (function (_super) {
+            __extends(Boot, _super);
+            function Boot() {
+                _super.apply(this, arguments);
+            }
+            Boot.prototype.preload = function () {
+                //You can preload an image here if you dont want to use text for the loading screen
+            };
+            Boot.prototype.create = function () {
+                this.stage.setBackgroundColor(0xFFFFFF);
+                this.input.maxPointers = 1;
+                this.stage.disableVisibilityChange = true;
+                if (this.game.device.desktop) {
+                    this.scale.pageAlignHorizontally = true;
+                }
+                else {
+                    // mobile
+                    //this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+                    this.scale.minWidth = 480;
+                    this.scale.minHeight = 260;
+                    this.scale.maxWidth = 1280;
+                    this.scale.maxHeight = 720;
+                    this.scale.forceLandscape = true;
+                    this.scale.pageAlignHorizontally = true;
+                    this.scale.refresh();
+                }
+                this.game.state.start("Preloader", true, false);
+            };
+            return Boot;
+        }(Phaser.State));
+        Client.Boot = Boot;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
         var Preloader = (function (_super) {
             __extends(Preloader, _super);
             function Preloader() {
@@ -724,6 +758,9 @@ var FacebookWarGame;
                 this.add.tween(this.background).to({ alpha: 1 }, 500, Phaser.Easing.Linear.None, true);
             };
             RoundStart.prototype.update = function () {
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
+                    this.countDownTimer = new Client.CountDownTimer(0, 3);
+                }
                 if (this.countDownTimer.timerExpired()) {
                     this.timerText.text = "NEXT ROUND STARTS NOW!";
                     this.fadeOut();

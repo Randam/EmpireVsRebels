@@ -17,9 +17,10 @@ module FacebookWarGame.Client {
 
 }
 
-let access_token: string = '1850233771859903|UZReV_K_e2zP6w7y7xxOgfyNauU'; // PASTE HERE YOUR FACEBOOK ACCESS TOKEN
-let pageId: string = '314813142252248'; // PAST HERE YOUR PAGE ID
-let postId: string = '325905601143002'; // PASTE HERE YOUR POST ID  
+let access_token: string = '1850233771859903|UZReV_K_e2zP6w7y7xxOgfyNauU';  // PASTE HERE YOUR FACEBOOK ACCESS TOKEN
+let pageId: string = '314813142252248';                                     // PASTE HERE YOUR PAGE ID
+let postId: string = '325905601143002';                                     // PASTE HERE YOUR POST ID  
+let refreshId: number = 0;
 
 let game: FacebookWarGame.Client.GameEngine = null;
 
@@ -38,39 +39,48 @@ window.onload = () => {
     game = new FacebookWarGame.Client.GameEngine();
 
     setInterval(processFacebookData, 4000);
-    //processFacebookData();
+    setInterval(updateGame, 500);
 };
 
 function processFacebookData() {
     // check for new comments containing a faction, and add a user to the game if he hasn't been added already
-    FacebookWarGame.Client.FacebookComment.refreshList(pageId, postId, access_token);
-
-    $.each(FacebookWarGame.Client.FacebookComment.list, function (index, comment) {
-        if (comment.refreshId === FacebookWarGame.Client.FacebookComment.refreshId) {
-            if (comment.isFaction()) {
-                if (FacebookWarGame.Client.User.findById(comment.fromId) === undefined) {
-                    let user = new FacebookWarGame.Client.User(comment.fromName, comment.getFaction(), comment.fromId);
-                    game.state.states.Arena.addUnitForUser(user);
-                }
-            }
-        }
-    });
-
+    FacebookWarGame.Client.FacebookComment.refreshList(pageId, postId, access_token, refreshId);
+    
     // check for unique tags, and add/respawn a user if he has tagged someone and was previously in the game
-    FacebookWarGame.Client.FacebookTag.refreshList(access_token);
+    FacebookWarGame.Client.FacebookTag.refreshList(access_token, refreshId);
+}
 
-    $.each(FacebookWarGame.Client.FacebookTag.list, function (index, tag) {
-        if (tag.refreshId === FacebookWarGame.Client.FacebookComment.refreshId) {
-            if (FacebookWarGame.Client.User.findById(tag.userId) !== undefined) {
-                let comment = FacebookWarGame.Client.FacebookComment.findByFromId(tag.userId);
-                if (comment === undefined) {
-                    let user = FacebookWarGame.Client.User.findById(comment.fromId);
-
-                    if (user !== undefined) {
+function updateGame() {
+    if (FacebookWarGame.Client.FacebookComment.updated && FacebookWarGame.Client.FacebookTag.updated) {
+        $.each(FacebookWarGame.Client.FacebookComment.list, function (index, comment) {
+            if (comment.refreshId === refreshId) {
+                if (comment.isFaction()) {
+                    if (FacebookWarGame.Client.User.findById(comment.fromId) === undefined) {
+                        let user = new FacebookWarGame.Client.User(comment.fromName, comment.getFaction(), comment.fromId);
                         game.state.states.Arena.addUnitForUser(user);
                     }
                 }
             }
-        }
-    });
+        });
+        FacebookWarGame.Client.FacebookComment.updated = false;
+
+        $.each(FacebookWarGame.Client.FacebookTag.list, function (index, tag) {
+            if (tag.refreshId === refreshId) {
+                if (FacebookWarGame.Client.User.findById(tag.userId) !== undefined) {
+                    let comment = FacebookWarGame.Client.FacebookComment.findByFromId(tag.userId);
+                    if (comment === undefined) {
+                        let user = FacebookWarGame.Client.User.findById(comment.fromId);
+
+                        if (user !== undefined) {
+                            game.state.states.Arena.addUnitForUser(user);
+                        }
+                    }
+                }
+            }
+        });
+        FacebookWarGame.Client.FacebookTag.updated = false;
+
+        refreshId++;
+
+    }
 }

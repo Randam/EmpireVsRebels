@@ -82,11 +82,15 @@
                 this.timerText.text = "Round ends in: " + this.countDownTimer.getTimer();
 
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.DELETE)) {
-                this.addEmpireUnit(new User("Empire Robot", "empire"));
+                    this.addEmpireUnit(new User("Empire Robot", "empire"));
                 }
 
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.INSERT)) {
                     this.addRebelsUnit(new User("Rebel Mech", "rebels"));
+                }
+
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
+                    this.countDownTimer = new CountDownTimer(0, 3);
                 }
 
                 if (this.empire.countLiving() === 0) {

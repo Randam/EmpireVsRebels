@@ -85,9 +85,11 @@
     <TypeScriptCompile Include="scripts\typings\System\Object.ts" />
     <TypeScriptCompile Include="src\game.ts" />
     <TypeScriptCompile Include="src\gameLib\countDownTimer.ts" />
+    <TypeScriptCompile Include="src\facebookObjects\facebookComments.ts" />
+    <TypeScriptCompile Include="src\facebookObjects\facebookTags.ts" />
     <TypeScriptCompile Include="src\gameLib\types.ts" />
     <TypeScriptCompile Include="src\gameLib\mechLib.ts" />
-    <TypeScriptCompile Include="src\gameLib\users.ts" />
+    <TypeScriptCompile Include="src\facebookObjects\users.ts" />
     <TypeScriptCompile Include="src\gameObjects\bullet.ts" />
     <TypeScriptCompile Include="src\gameObjects\player.ts" />
     <TypeScriptCompile Include="src\gameStates\boot.ts" />

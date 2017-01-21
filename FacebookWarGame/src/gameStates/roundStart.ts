@@ -40,6 +40,10 @@
         }
 
         update() {
+            if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
+                this.countDownTimer = new CountDownTimer(0, 3);
+            }
+
             if (this.countDownTimer.timerExpired()) {
                 this.timerText.text = "NEXT ROUND STARTS NOW!"
                 this.fadeOut();
