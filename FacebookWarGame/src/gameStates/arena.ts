@@ -2,10 +2,12 @@
 
     export class Arena extends Phaser.State {
         bgm: Phaser.Sound;
+        airRaidSound: Phaser.Sound;
         rebels: Phaser.Group;
         empire: Phaser.Group;
         map: Phaser.Tilemap;
         leader: User;
+        plane: Plane;
 
         empireScore: number;
         rebelsScore: number;
@@ -22,6 +24,10 @@
 
         rebelsScoreText: Phaser.Text;
         empireScoreText: Phaser.Text;
+
+        airRaidText: Phaser.Text;
+        airRaidTimer: number;
+        airRaidUser: User;
 
         bulletsRebels: Phaser.Group;
         bulletsEmpire: Phaser.Group;
@@ -56,12 +62,14 @@
             this.vsText = this.game.add.text(game.world.centerX, game.world.height - 16, "vs", { font: "12pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
             this.rebelsScoreText = this.game.add.text(game.world.centerX - 500, game.world.height - 16, "0", { font: "12pt Arial Black", fill: "#009900", stroke: "#000000", strokeThickness: 3 });
             this.empireScoreText = this.game.add.text(game.world.centerX + 500, game.world.height - 16, "0", { font: "12pt Arial Black", fill: "#990000", stroke: "#000000", strokeThickness: 3 });
+            this.airRaidText = this.game.add.text(game.world.centerX, game.world.centerY, "", { font: "24pt Arial Black", fill: "#cccccc", stroke: "#000000", strokeThickness: 5 });
 
             this.rebelsText.anchor.set(0.5);
             this.rebelsScoreText.anchor.set(0.5);
             this.empireText.anchor.set(0.5);
             this.empireScoreText.anchor.set(0.5);
             this.vsText.anchor.set(0.5);
+            this.airRaidText.anchor.set(0.5);
 
             this.leaderLabelText.anchor.set(0);
             this.leaderNameText.anchor.set(0);
@@ -74,6 +82,10 @@
 
             this.rebels = this.initUnitGroup("rebels");
             this.empire = this.initUnitGroup("empire");
+
+            this.plane = new Plane(this.game);
+            this.plane.anchor.set(0.5);
+            this.game.add.existing(this.plane);
 
             this.explosions = this.add.group();
             this.explosions.createMultiple(60, "Explosion");
@@ -91,7 +103,9 @@
             this.bgm = this.add.sound("bgm", 0.5, true);
             this.bgm.onDecoded.add(this.startMusic, this);
 
-            this.add.sound("start", 0);
+            this.airRaidSound = this.add.sound("alarm");
+
+            this.add.sound("start");
             this.sound.play("start");
 
         }
@@ -121,6 +135,16 @@
                     this.countDownTimer = new CountDownTimer(0, 3);
                 }
 
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
+                    this.prepareAirRaid(User.list[Math.floor(Math.random() * User.list.length)]);
+                }
+
+                if (this.airRaidSound.isPlaying) {
+                    if (this.game.time.elapsed % 2 == 0) {
+                        this.airRaidText.fontSize = +this.airRaidText.fontSize + 1;
+                    }
+                }
+
                 if (this.empire.countLiving() === 0) {
                     this.rebels.setAll("bulletsToFire", 0);
                 }
@@ -139,9 +163,25 @@
                     this.addRebelsUnit(user);
                 }
 
-                this.game.physics.arcade.overlap(this.bulletsEmpire, this.rebels, this.rebelHit, undefined, this);
-                this.game.physics.arcade.overlap(this.bulletsRebels, this.empire, this.empireHit, undefined, this);
+                this.game.physics.arcade.overlap(this.bulletsEmpire, this.rebels, this.rebelHitByBullet, undefined, this);
+                this.game.physics.arcade.overlap(this.bulletsRebels, this.empire, this.empireHitByBullet, undefined, this);
+                this.game.physics.arcade.overlap(this.plane, this.rebels, this.rebelHitByPlane, undefined, this);
+                this.game.physics.arcade.overlap(this.plane, this.empire, this.empireHitByPlane, undefined, this);
             }
+        }
+
+        public prepareAirRaid(airRaidUser: User) {
+            this.airRaidUser = airRaidUser;
+            this.airRaidText.visible = true;
+            this.airRaidText.fontSize = 1;
+            this.airRaidText.text = this.airRaidUser.faction.toUpperCase() + " Air Strike by " + this.airRaidUser.name;
+            this.airRaidSound.onStop.add(this.startAirRaid, this);
+            this.airRaidSound.play();
+        }
+
+        private startAirRaid() {
+            this.airRaidText.visible = false;
+            this.plane.startAirRaid(this.airRaidUser);
         }
 
         public addEmpireUnit(user: User): Player {
@@ -198,21 +238,37 @@
             return existingUnits[0];
         }
 
-        private rebelHit(bullet: Bullet, unit: Player): void {
-            this.unitHit(bullet, unit);
+        private rebelHitByBullet(bullet: Bullet, unit: Player): void {
+            this.unitHitByBullet(bullet, unit);
         }
 
-        private empireHit(bullet: Bullet, unit: Player): void {
-            this.unitHit(bullet, unit);
+        private empireHitByBullet(bullet: Bullet, unit: Player): void {
+            this.unitHitByBullet(bullet, unit);
         }
 
-        private unitHit(bullet: Bullet, unit: Player): void {
+        private rebelHitByPlane(plane: Plane, unit: Player): void {
+            this.unitHitByPlane(plane, unit);
+        }
+
+        private empireHitByPlane(plane: Plane, unit: Player): void {
+            this.unitHitByPlane(plane, unit);
+        }
+
+        private unitHitByBullet(bullet: Bullet, unit: Player): void {
             bullet.kill();
+            this.unitHit(bullet, bullet.firedBy.user, unit);
+        }
+
+        private unitHitByPlane(plane: Plane, unit: Player): void {
+            this.unitHit(plane, plane.user, unit);
+        }
+
+        private unitHit(collider: Phaser.Sprite, user: User, unit: Player): void {
             unit.health -= 25;
 
             if (unit.health <= 0) {
                 let destroyedText: string = unit.name + " was destroyed. ";
-                let killText: string = ((bullet.firedBy.name != "") ? bullet.firedBy.name + " scored a kill!" : "");
+                let killText: string = ((user != undefined && user.name != "") ? user.name + " scored a kill!" : "");
 
                 this.game.debug.text(
                     destroyedText + killText,
@@ -226,13 +282,13 @@
 
                 this.explodingSound[Math.floor(Math.random() * (this.explodingSound.length - 1)) + 1].play();
                 var explosion: Phaser.Sprite = this.explosions.getFirstExists(false);
-                explosion.scale = new Phaser.Point (1, 1);
+                explosion.scale = new Phaser.Point(1, 1);
                 explosion.reset(unit.body.x, unit.body.y);
                 explosion.play("Explosion", 30, false, true);
 
-                if (bullet.firedBy.user != undefined) {
-                    bullet.firedBy.user.score++;
-                    if (MechLib.isEmpire(bullet.firedBy.user.faction)) {
+                if (user != undefined) {
+                    user.score++;
+                    if (MechLib.isEmpire(user.faction)) {
                         this.empireScore++;
                     }
                     else {
@@ -241,9 +297,9 @@
                     this.rebelsScoreText.text = this.rebelsScore.toString();
                     this.empireScoreText.text = this.empireScore.toString();
 
-                    if (bullet.firedBy.user.score > this.leader.score || bullet.firedBy.user.name == this.leader.name) {
-                        if (bullet.firedBy.user.fbId != "0") {
-                            this.leader = bullet.firedBy.user;
+                    if (user.score > this.leader.score || user.name == this.leader.name) {
+                        if (user.fbId != "0") {
+                            this.leader = user;
                             this.leaderNameText.text = this.leader.name;
                             this.leaderFactionText.text = this.leader.faction;
                             this.leaderScoreText.text = "Kills: " + this.leader.score.toString();
@@ -254,7 +310,7 @@
                 this.explodingSound[0].play("", 0, 0.5);
                 var explosion: Phaser.Sprite = this.explosions.getFirstExists(false);
                 explosion.scale = new Phaser.Point(0.2, 0.2);
-                explosion.reset(bullet.body.x, bullet.body.y);
+                explosion.reset(collider.body.x, collider.body.y);
                 explosion.play("Explosion", 60, false, true);
             }
         }

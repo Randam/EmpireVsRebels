@@ -254,6 +254,14 @@ declare module FacebookWarGame.Client {
     }
 }
 declare module FacebookWarGame.Client {
+    class Plane extends Phaser.Sprite {
+        planeSound: Phaser.Sound;
+        user: User;
+        constructor(game: Phaser.Game);
+        startAirRaid(user: User): void;
+    }
+}
+declare module FacebookWarGame.Client {
     class Player extends Phaser.Sprite {
         destination: Phaser.Point;
         direction: Direction;
@@ -281,10 +289,12 @@ declare module FacebookWarGame.Client {
 declare module FacebookWarGame.Client {
     class Arena extends Phaser.State {
         bgm: Phaser.Sound;
+        airRaidSound: Phaser.Sound;
         rebels: Phaser.Group;
         empire: Phaser.Group;
         map: Phaser.Tilemap;
         leader: User;
+        plane: Plane;
         empireScore: number;
         rebelsScore: number;
         leaderLabelText: Phaser.Text;
@@ -297,6 +307,9 @@ declare module FacebookWarGame.Client {
         empireText: Phaser.Text;
         rebelsScoreText: Phaser.Text;
         empireScoreText: Phaser.Text;
+        airRaidText: Phaser.Text;
+        airRaidTimer: number;
+        airRaidUser: User;
         bulletsRebels: Phaser.Group;
         bulletsEmpire: Phaser.Group;
         explosions: Phaser.Group;
@@ -304,13 +317,19 @@ declare module FacebookWarGame.Client {
         countDownTimer: CountDownTimer;
         create(): void;
         update(): void;
+        prepareAirRaid(airRaidUser: User): void;
+        private startAirRaid();
         addEmpireUnit(user: User): Player;
         addRebelsUnit(user: User): Player;
         addUnitForUser(user: User): void;
         private addUnit(user, health, units, startX, startY, destX, destY);
-        private rebelHit(bullet, unit);
-        private empireHit(bullet, unit);
-        private unitHit(bullet, unit);
+        private rebelHitByBullet(bullet, unit);
+        private empireHitByBullet(bullet, unit);
+        private rebelHitByPlane(plane, unit);
+        private empireHitByPlane(plane, unit);
+        private unitHitByBullet(bullet, unit);
+        private unitHitByPlane(plane, unit);
+        private unitHit(collider, user, unit);
         private initUnitGroup(faction);
         private initBulletGroup(faction);
         startMusic(): void;

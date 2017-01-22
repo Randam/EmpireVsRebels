@@ -9,8 +9,6 @@
 
             this.load.image("barblack", "./assets/sprites/BarBlack.png");
             this.load.image("bargreen", "./assets/sprites/BarGreen.png");
-            this.load.image("baryellow", "./assets/sprites/BarYellow.png");
-            this.load.image("barred", "./assets/sprites/BarRed.png");
 
             this.load.image("plane", "./assets/sprites/Starfighter.png");
 
@@ -29,6 +27,8 @@
             this.load.audio("laser", "./assets/sounds/laser2.wav", true);
             this.load.audio("clapping", "./assets/sounds/Clapping.wav", true);
             this.load.audio("start", "./assets/sounds/StartRound.wav", true);
+            this.load.audio("plane", "./assets/sounds/plane.mp3", true);
+            this.load.audio("alarm", "./assets/sounds/alarm.mp3", true);
             this.load.audio("bgm", "./assets/sounds/Destroyed.mp3", true);
 
             this.load.atlasJSONArray("MechRebels", "./assets/sprites/Mech1.png", "./assets/sprites/Mech1.json");

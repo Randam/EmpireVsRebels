@@ -315,6 +315,32 @@ var FacebookWarGame;
 (function (FacebookWarGame) {
     var Client;
     (function (Client) {
+        var Plane = (function (_super) {
+            __extends(Plane, _super);
+            function Plane(game) {
+                _super.call(this, game, 0, game.world.height, "plane");
+                this.visible = false;
+                this.game.add.existing(this);
+                this.game.physics.enable(this);
+                this.checkWorldBounds = true;
+                this.outOfBoundsKill = true;
+            }
+            Plane.prototype.startAirRaid = function (user) {
+                this.user = user;
+                this.reset(game.world.centerX + (Client.MechLib.isRebels(this.user.faction) ? 400 : -400), this.game.height);
+                this.body.velocity.y = -400;
+                this.planeSound = this.game.sound.add("plane");
+                this.planeSound.play();
+            };
+            return Plane;
+        }(Phaser.Sprite));
+        Client.Plane = Plane;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
         var Player = (function (_super) {
             __extends(Player, _super);
             function Player(faction, game, x, y, bullets) {
@@ -525,11 +551,13 @@ var FacebookWarGame;
                 this.vsText = this.game.add.text(game.world.centerX, game.world.height - 16, "vs", { font: "12pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
                 this.rebelsScoreText = this.game.add.text(game.world.centerX - 500, game.world.height - 16, "0", { font: "12pt Arial Black", fill: "#009900", stroke: "#000000", strokeThickness: 3 });
                 this.empireScoreText = this.game.add.text(game.world.centerX + 500, game.world.height - 16, "0", { font: "12pt Arial Black", fill: "#990000", stroke: "#000000", strokeThickness: 3 });
+                this.airRaidText = this.game.add.text(game.world.centerX, game.world.centerY, "", { font: "24pt Arial Black", fill: "#cccccc", stroke: "#000000", strokeThickness: 5 });
                 this.rebelsText.anchor.set(0.5);
                 this.rebelsScoreText.anchor.set(0.5);
                 this.empireText.anchor.set(0.5);
                 this.empireScoreText.anchor.set(0.5);
                 this.vsText.anchor.set(0.5);
+                this.airRaidText.anchor.set(0.5);
                 this.leaderLabelText.anchor.set(0);
                 this.leaderNameText.anchor.set(0);
                 this.leaderFactionText.anchor.set(0);
@@ -539,6 +567,9 @@ var FacebookWarGame;
                 this.bulletsEmpire = this.initBulletGroup("empire");
                 this.rebels = this.initUnitGroup("rebels");
                 this.empire = this.initUnitGroup("empire");
+                this.plane = new Client.Plane(this.game);
+                this.plane.anchor.set(0.5);
+                this.game.add.existing(this.plane);
                 this.explosions = this.add.group();
                 this.explosions.createMultiple(60, "Explosion");
                 this.explosions.callAll("animations.add", "animations", "Explosion", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 20, true);
@@ -547,7 +578,8 @@ var FacebookWarGame;
                 }
                 this.bgm = this.add.sound("bgm", 0.5, true);
                 this.bgm.onDecoded.add(this.startMusic, this);
-                this.add.sound("start", 0);
+                this.airRaidSound = this.add.sound("alarm");
+                this.add.sound("start");
                 this.sound.play("start");
             };
             Arena.prototype.update = function () {
@@ -571,6 +603,14 @@ var FacebookWarGame;
                     if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
                         this.countDownTimer = new Client.CountDownTimer(0, 3);
                     }
+                    if (this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
+                        this.prepareAirRaid(Client.User.list[Math.floor(Math.random() * Client.User.list.length)]);
+                    }
+                    if (this.airRaidSound.isPlaying) {
+                        if (this.game.time.elapsed % 2 == 0) {
+                            this.airRaidText.fontSize = +this.airRaidText.fontSize + 1;
+                        }
+                    }
                     if (this.empire.countLiving() === 0) {
                         this.rebels.setAll("bulletsToFire", 0);
                     }
@@ -587,9 +627,23 @@ var FacebookWarGame;
                         Client.User.list.push(user);
                         this.addRebelsUnit(user);
                     }
-                    this.game.physics.arcade.overlap(this.bulletsEmpire, this.rebels, this.rebelHit, undefined, this);
-                    this.game.physics.arcade.overlap(this.bulletsRebels, this.empire, this.empireHit, undefined, this);
+                    this.game.physics.arcade.overlap(this.bulletsEmpire, this.rebels, this.rebelHitByBullet, undefined, this);
+                    this.game.physics.arcade.overlap(this.bulletsRebels, this.empire, this.empireHitByBullet, undefined, this);
+                    this.game.physics.arcade.overlap(this.plane, this.rebels, this.rebelHitByPlane, undefined, this);
+                    this.game.physics.arcade.overlap(this.plane, this.empire, this.empireHitByPlane, undefined, this);
                 }
+            };
+            Arena.prototype.prepareAirRaid = function (airRaidUser) {
+                this.airRaidUser = airRaidUser;
+                this.airRaidText.visible = true;
+                this.airRaidText.fontSize = 1;
+                this.airRaidText.text = this.airRaidUser.faction.toUpperCase() + " Air Strike by " + this.airRaidUser.name;
+                this.airRaidSound.onStop.add(this.startAirRaid, this);
+                this.airRaidSound.play();
+            };
+            Arena.prototype.startAirRaid = function () {
+                this.airRaidText.visible = false;
+                this.plane.startAirRaid(this.airRaidUser);
             };
             Arena.prototype.addEmpireUnit = function (user) {
                 var health = 100;
@@ -621,18 +675,30 @@ var FacebookWarGame;
                 }
                 return existingUnits[0];
             };
-            Arena.prototype.rebelHit = function (bullet, unit) {
-                this.unitHit(bullet, unit);
+            Arena.prototype.rebelHitByBullet = function (bullet, unit) {
+                this.unitHitByBullet(bullet, unit);
             };
-            Arena.prototype.empireHit = function (bullet, unit) {
-                this.unitHit(bullet, unit);
+            Arena.prototype.empireHitByBullet = function (bullet, unit) {
+                this.unitHitByBullet(bullet, unit);
             };
-            Arena.prototype.unitHit = function (bullet, unit) {
+            Arena.prototype.rebelHitByPlane = function (plane, unit) {
+                this.unitHitByPlane(plane, unit);
+            };
+            Arena.prototype.empireHitByPlane = function (plane, unit) {
+                this.unitHitByPlane(plane, unit);
+            };
+            Arena.prototype.unitHitByBullet = function (bullet, unit) {
                 bullet.kill();
+                this.unitHit(bullet, bullet.firedBy.user, unit);
+            };
+            Arena.prototype.unitHitByPlane = function (plane, unit) {
+                this.unitHit(plane, plane.user, unit);
+            };
+            Arena.prototype.unitHit = function (collider, user, unit) {
                 unit.health -= 25;
                 if (unit.health <= 0) {
                     var destroyedText = unit.name + " was destroyed. ";
-                    var killText = ((bullet.firedBy.name != "") ? bullet.firedBy.name + " scored a kill!" : "");
+                    var killText = ((user != undefined && user.name != "") ? user.name + " scored a kill!" : "");
                     this.game.debug.text(destroyedText + killText, 0, this.world.height - 8, "white");
                     unit.name = "";
                     unit.kill();
@@ -641,9 +707,9 @@ var FacebookWarGame;
                     explosion.scale = new Phaser.Point(1, 1);
                     explosion.reset(unit.body.x, unit.body.y);
                     explosion.play("Explosion", 30, false, true);
-                    if (bullet.firedBy.user != undefined) {
-                        bullet.firedBy.user.score++;
-                        if (Client.MechLib.isEmpire(bullet.firedBy.user.faction)) {
+                    if (user != undefined) {
+                        user.score++;
+                        if (Client.MechLib.isEmpire(user.faction)) {
                             this.empireScore++;
                         }
                         else {
@@ -651,9 +717,9 @@ var FacebookWarGame;
                         }
                         this.rebelsScoreText.text = this.rebelsScore.toString();
                         this.empireScoreText.text = this.empireScore.toString();
-                        if (bullet.firedBy.user.score > this.leader.score || bullet.firedBy.user.name == this.leader.name) {
-                            if (bullet.firedBy.user.fbId != "0") {
-                                this.leader = bullet.firedBy.user;
+                        if (user.score > this.leader.score || user.name == this.leader.name) {
+                            if (user.fbId != "0") {
+                                this.leader = user;
                                 this.leaderNameText.text = this.leader.name;
                                 this.leaderFactionText.text = this.leader.faction;
                                 this.leaderScoreText.text = "Kills: " + this.leader.score.toString();
@@ -665,7 +731,7 @@ var FacebookWarGame;
                     this.explodingSound[0].play("", 0, 0.5);
                     var explosion = this.explosions.getFirstExists(false);
                     explosion.scale = new Phaser.Point(0.2, 0.2);
-                    explosion.reset(bullet.body.x, bullet.body.y);
+                    explosion.reset(collider.body.x, collider.body.y);
                     explosion.play("Explosion", 60, false, true);
                 }
             };
@@ -767,8 +833,6 @@ var FacebookWarGame;
                 this.loaderText.anchor.setTo(0.5);
                 this.load.image("barblack", "./assets/sprites/BarBlack.png");
                 this.load.image("bargreen", "./assets/sprites/BarGreen.png");
-                this.load.image("baryellow", "./assets/sprites/BarYellow.png");
-                this.load.image("barred", "./assets/sprites/BarRed.png");
                 this.load.image("plane", "./assets/sprites/Starfighter.png");
                 this.load.tilemap("arena", "./assets/sprites/arena.json", undefined, Phaser.Tilemap.TILED_JSON);
                 this.load.image("ground", "./assets/sprites/mountain_landscape.png");
@@ -783,6 +847,8 @@ var FacebookWarGame;
                 this.load.audio("laser", "./assets/sounds/laser2.wav", true);
                 this.load.audio("clapping", "./assets/sounds/Clapping.wav", true);
                 this.load.audio("start", "./assets/sounds/StartRound.wav", true);
+                this.load.audio("plane", "./assets/sounds/plane.mp3", true);
+                this.load.audio("alarm", "./assets/sounds/alarm.mp3", true);
                 this.load.audio("bgm", "./assets/sounds/Destroyed.mp3", true);
                 this.load.atlasJSONArray("MechRebels", "./assets/sprites/Mech1.png", "./assets/sprites/Mech1.json");
                 this.load.atlasJSONArray("MechEmpire", "./assets/sprites/Mech2.png", "./assets/sprites/Mech2.json");
