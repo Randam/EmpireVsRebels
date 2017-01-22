@@ -24,11 +24,24 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="build\assets\sprites\BarBlack.png" />
+    <Content Include="build\assets\sprites\BarGreen.png" />
+    <Content Include="build\assets\sprites\BarOrange.png" />
+    <Content Include="build\assets\sprites\BarRed.png" />
+    <Content Include="build\assets\sprites\Explosion.png" />
+    <Content Include="build\assets\sprites\ground_tiles.png" />
+    <Content Include="build\assets\sprites\mountain_landscape.png" />
+    <Content Include="build\assets\sprites\Starfighter.png" />
     <Content Include="build\assets\ui\roundBackground.png" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".bin\node.cmd" />
+    <Content Include="build\assets\sprites\arena.json" />
+    <Content Include="build\assets\sprites\arena.tmx" />
+    <Content Include="build\assets\sprites\Explosion.json" />
+    <Content Include="build\assets\sprites\mech1.tps" />
+    <Content Include="build\assets\sprites\mech2.tps" />
     <None Include="scripts\jquery-3.1.1.intellisense.js" />
     <Content Include="scripts\jquery-3.1.1.js" />
     <Content Include="scripts\jquery-3.1.1.min.js" />
@@ -47,7 +60,6 @@
     <Content Include="build\assets\sounds\laser.wav" />
     <Content Include="build\assets\sounds\step2.wav" />
     <Content Include="build\assets\sprites\bullet.png" />
-    <Content Include="build\assets\sprites\explode.png" />
     <Content Include="build\assets\sprites\ground.png" />
     <Content Include="build\assets\sprites\ground2.jpg" />
     <Content Include="build\assets\sprites\ground3.jpg" />

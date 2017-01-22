@@ -7,10 +7,18 @@
             this.loaderText = this.game.add.text(this.world.centerX, 200, "Loading the battlefield...", { font: "18px Arial", fill: "#A9A91111", align: "center" });
             this.loaderText.anchor.setTo(0.5);
 
+            this.load.image("barblack", "./assets/sprites/BarBlack.png");
+            this.load.image("bargreen", "./assets/sprites/BarGreen.png");
+            this.load.image("baryellow", "./assets/sprites/BarYellow.png");
+            this.load.image("barred", "./assets/sprites/BarRed.png");
+
+            this.load.image("plane", "./assets/sprites/Starfighter.png");
+
             this.load.tilemap("arena", "./assets/sprites/arena.json", undefined, Phaser.Tilemap.TILED_JSON);
             this.load.image("ground", "./assets/sprites/mountain_landscape.png");
             this.load.image("bullet", "./assets/sprites/bullet.png");
-            this.load.image("roundBackground", "./assets/ui/roundBackground.png");
+            this.load.image("roundBackground_rebels", "./assets/ui/roundBackground_rebels.png");
+            this.load.image("roundBackground_empire", "./assets/ui/roundBackground_empire.png");
 
             for (let i = 1; i <= 5; i++) {
                 this.load.audio("explosion" + i.toString(), "./assets/sounds/Explosion" + i.toString() + ".mp3", true);

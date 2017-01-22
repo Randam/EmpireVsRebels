@@ -48,7 +48,7 @@
                 $.getJSON(url, function (res) {
                     $.each(res, function (index, obj) {
                         if (obj.message_tags != undefined) {
-                            if (1 == 1 || !FacebookTag.exists(obj.message_tags[0].id)) {
+                            if (!FacebookTag.exists(obj.message_tags[0].id)) {
                                 let userId: string = FacebookComment.findById(obj.id).fromId;
                                 FacebookTag.list.push(new FacebookTag(userId, obj.message_tags[0].id, refreshId));
                             }

@@ -7,11 +7,21 @@
         map: Phaser.Tilemap;
         leader: User;
 
+        empireScore: number;
+        rebelsScore: number;
+
         leaderLabelText: Phaser.Text;
         leaderNameText: Phaser.Text;
         leaderFactionText: Phaser.Text;
         leaderScoreText: Phaser.Text;
         timerText: Phaser.Text;
+
+        rebelsText: Phaser.Text;
+        vsText: Phaser.Text;
+        empireText: Phaser.Text;
+
+        rebelsScoreText: Phaser.Text;
+        empireScoreText: Phaser.Text;
 
         bulletsRebels: Phaser.Group;
         bulletsEmpire: Phaser.Group;
@@ -32,12 +42,27 @@
 
             this.leader = new User("Annemarie Derwort-Steinvoort", "empire", "");
             this.leader.score = 0;
+            this.rebelsScore = 0;
+            this.empireScore = 0;
 
             this.leaderLabelText = this.game.add.text(game.world.centerX - 200, 70 - 14, "Current Leader", { font: "12pt Arial Black", fill: "#999999", stroke: "#000000", strokeThickness: 3 });
             this.leaderNameText = this.game.add.text(game.world.centerX - 200, 94 - 14, this.leader.name, { font: "18pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
             this.leaderFactionText = this.game.add.text(game.world.centerX - 200, 130 - 14, this.leader.faction.toUpperCase(), { font: "12pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
             this.leaderScoreText = this.game.add.text(game.world.centerX + 214, 130 - 14, "Kills: " + this.leader.score.toString(), { font: "12pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
             this.timerText = this.game.add.text(game.world.centerX + 214, 166 - 14, this.countDownTimer.getTimer(), { font: "10pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
+
+            this.rebelsText = this.game.add.text(game.world.centerX - 500, game.world.height - 36, "REBELS", { font: "16pt Arial Black", fill: "#009900", stroke: "#000000", strokeThickness: 3 });
+            this.empireText = this.game.add.text(game.world.centerX + 500, game.world.height - 36, "EMPIRE", { font: "16pt Arial Black", fill: "#990000", stroke: "#000000", strokeThickness: 3 });
+            this.vsText = this.game.add.text(game.world.centerX, game.world.height - 16, "vs", { font: "12pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
+            this.rebelsScoreText = this.game.add.text(game.world.centerX - 500, game.world.height - 16, "0", { font: "12pt Arial Black", fill: "#009900", stroke: "#000000", strokeThickness: 3 });
+            this.empireScoreText = this.game.add.text(game.world.centerX + 500, game.world.height - 16, "0", { font: "12pt Arial Black", fill: "#990000", stroke: "#000000", strokeThickness: 3 });
+
+            this.rebelsText.anchor.set(0.5);
+            this.rebelsScoreText.anchor.set(0.5);
+            this.empireText.anchor.set(0.5);
+            this.empireScoreText.anchor.set(0.5);
+            this.vsText.anchor.set(0.5);
+
             this.leaderLabelText.anchor.set(0);
             this.leaderNameText.anchor.set(0);
             this.leaderFactionText.anchor.set(0);
@@ -68,6 +93,7 @@
 
             this.add.sound("start", 0);
             this.sound.play("start");
+
         }
 
         update(): void {
@@ -80,11 +106,15 @@
                 this.timerText.text = "Round ends in: " + this.countDownTimer.getTimer();
 
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.DELETE)) {
-                    this.addEmpireUnit(new User("Empire Robot", "empire"));
+                    let user: User = new User("Empire Robot", "empire", "0");
+                    User.list.push(user);
+                    this.addEmpireUnit(user);
                 }
 
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.INSERT)) {
-                    this.addRebelsUnit(new User("Rebel Mech", "rebels"));
+                    let user: User = new User("Rebel Mech", "rebels", "0");
+                    User.list.push(user);
+                    this.addRebelsUnit(user);
                 }
 
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
@@ -97,13 +127,25 @@
                 if (this.rebels.countLiving() === 0) {
                     this.empire.setAll("bulletsToFire", 0);
                 }
+
+                if (this.empire.countLiving() < 3) {
+                    let user: User = new User("Empire Robot " + (this.empire.countLiving() + 1).toString(), "empire", "0");
+                    User.list.push(user);
+                    this.addEmpireUnit(user);
+                }
+                if (this.rebels.countLiving() < 3) {
+                    let user: User = new User("Rebels Mech " + (this.rebels.countLiving() + 1).toString(), "rebels", "0");
+                    User.list.push(user);
+                    this.addRebelsUnit(user);
+                }
+
                 this.game.physics.arcade.overlap(this.bulletsEmpire, this.rebels, this.rebelHit, undefined, this);
                 this.game.physics.arcade.overlap(this.bulletsRebels, this.empire, this.empireHit, undefined, this);
             }
         }
 
         public addEmpireUnit(user: User): Player {
-            let health: number = 10; // 110;
+            let health: number = 100;
 
             return this.addUnit(
                 user,
@@ -116,7 +158,7 @@
         }
 
         public addRebelsUnit(user: User): Player {
-            let health: number = 10; //110;
+            let health: number = 100;
 
             return this.addUnit(
                 user,
@@ -190,12 +232,22 @@
 
                 if (bullet.firedBy.user != undefined) {
                     bullet.firedBy.user.score++;
+                    if (MechLib.isEmpire(bullet.firedBy.user.faction)) {
+                        this.empireScore++;
+                    }
+                    else {
+                        this.rebelsScore++;
+                    }
+                    this.rebelsScoreText.text = this.rebelsScore.toString();
+                    this.empireScoreText.text = this.empireScore.toString();
 
                     if (bullet.firedBy.user.score > this.leader.score || bullet.firedBy.user.name == this.leader.name) {
-                        this.leader = bullet.firedBy.user;
-                        this.leaderNameText.text = this.leader.name;
-                        this.leaderFactionText.text = this.leader.faction;
-                        this.leaderScoreText.text = "Kills: " + this.leader.score.toString();
+                        if (bullet.firedBy.user.fbId != "0") {
+                            this.leader = bullet.firedBy.user;
+                            this.leaderNameText.text = this.leader.name;
+                            this.leaderFactionText.text = this.leader.faction;
+                            this.leaderScoreText.text = "Kills: " + this.leader.score.toString();
+                        }
                     }
                 }
             } else {
@@ -253,7 +305,11 @@
 
         roundNext() {
             let leader: User = this.leader;
-            this.game.state.start("RoundStart", true, false, leader)
+
+            let leadingFactionScore: number = (this.empireScore > this.rebelsScore) ? this.empireScore : this.rebelsScore;
+            let leadingFaction: string = (this.empireScore > this.rebelsScore) ? "empire" : "rebels";
+
+            this.game.state.start("RoundStart", true, false, { leader, leadingFaction, leadingFactionScore })
         }
     }
 }

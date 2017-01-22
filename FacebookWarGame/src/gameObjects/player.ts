@@ -13,6 +13,8 @@
         private bulletTime: number;
         private faction: string;
         private nameLabel: Phaser.Text;
+        private healthBarBg: Phaser.Sprite;
+        private healthBar: Phaser.Sprite;
         private score: number;
 
         constructor(faction: string, game: Phaser.Game, x: number, y: number, bullets: Phaser.Group) {
@@ -38,15 +40,49 @@
             this.nameLabel = this.game.add.text(this.x, this.y - 48, this.name, style);
             this.nameLabel.anchor.set(0.5);
 
+            this.healthBarBg = this.game.add.sprite(this.x, this.y, "barblack");  
+            this.healthBarBg.width = 48;
+            this.healthBarBg.height = 8;
+            this.healthBarBg.anchor.set(0, 0.5);
+            this.healthBar = this.game.add.sprite(this.x + 1, this.y, "bargreen");
+            this.healthBar.width = 46;
+            this.healthBar.height = 6;
+            this.healthBar.anchor.set(0, 0.5);
+            this.updateHealthBar();
+
             this.bulletTime = 0;
             this.bulletsToFire = 3;
         }
 
         kill(): Phaser.Sprite {
             this.nameLabel.text = "";
+            this.healthBar.kill();
+            this.healthBarBg.kill();
             super.kill();
 
             return this;
+        }
+
+        updateHealthBar() {
+            if (this.alive && this.x > 0 && this.y > 0) {
+                this.healthBar.visible = true;
+                this.healthBarBg.visible = true;
+
+                let x: number = this.x - 24;
+                let y: number = this.y + 48;;
+
+                this.healthBar.x = x + 1;
+                this.healthBar.y = y;
+
+                this.healthBarBg.x = x;
+                this.healthBarBg.y = y;
+
+                this.healthBar.width = Math.floor(this.health / 100 * 46);
+            }
+            else {
+                this.healthBar.visible = false;
+                this.healthBarBg.visible = false;
+            }
         }
 
         update(): void {
@@ -101,8 +137,7 @@
                 this.nameLabel.x = this.x;
                 this.nameLabel.y = this.y - 48;
 
-                if (this.health < 100)
-                    this.health += healthRate;
+                this.updateHealthBar();
             }
         }
 

@@ -3,6 +3,158 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
+        var FacebookComment = (function () {
+            function FacebookComment() {
+            }
+            FacebookComment.prototype.getFaction = function () {
+                if (this.isFaction()) {
+                    return this.message.toLowerCase();
+                }
+                else {
+                    return "";
+                }
+            };
+            FacebookComment.prototype.isFaction = function () {
+                var faction = this.message.toLowerCase();
+                return (faction == "rebels" || faction == "empire");
+            };
+            FacebookComment.refreshList = function (pageId, postId, access_token, refreshId) {
+                if (FacebookComment.updated)
+                    return;
+                var url = 'https://graph.facebook.com/v2.8/?ids=' + pageId + "_" + postId + '&fields=comments&access_token=' + access_token;
+                $.getJSON(url, function (result) {
+                    result = result[pageId + "_" + postId].comments.data;
+                    FacebookComment.addRecordsFromJSON(result, refreshId);
+                    FacebookComment.updated = true;
+                });
+            };
+            FacebookComment.addRecordsFromJSON = function (jsonResult, refreshId) {
+                $.each(jsonResult, function (index, obj) {
+                    var fbComment = new FacebookComment();
+                    fbComment.created_time = obj.created_time;
+                    fbComment.fromId = obj.from.id;
+                    fbComment.fromName = obj.from.name;
+                    fbComment.id = obj.id;
+                    fbComment.message = obj.message;
+                    fbComment.refreshId = refreshId;
+                    if (FacebookComment.findById(fbComment.id) == undefined) {
+                        FacebookComment.list.push(fbComment);
+                    }
+                });
+            };
+            // get the new facebook comments since the last refresh
+            FacebookComment.getNew = function (refreshId) {
+                return FacebookComment.list.filter(function (ul) {
+                    return ul.refreshId >= refreshId;
+                });
+            };
+            FacebookComment.findByFromId = function (fromId) {
+                return FacebookComment.list.filter(function (ul) {
+                    return ul.fromId == fromId;
+                })[0];
+            };
+            FacebookComment.findById = function (id) {
+                return FacebookComment.list.filter(function (ul) {
+                    return ul.id == id;
+                })[0];
+            };
+            FacebookComment.list = [];
+            FacebookComment.updated = false;
+            return FacebookComment;
+        }());
+        Client.FacebookComment = FacebookComment;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
+        var FacebookTag = (function () {
+            function FacebookTag(userId, tagId, refreshId) {
+                this.userId = userId;
+                this.tagId = tagId;
+                this.refreshId = refreshId;
+            }
+            FacebookTag.exists = function (taggedId) {
+                return (FacebookTag.list.filter(function (ul) {
+                    return (ul.tagId == taggedId);
+                })).length > 0;
+            };
+            FacebookTag.refreshList = function (access_token, refreshId) {
+                if (FacebookTag.updated)
+                    return;
+                if (!Client.FacebookComment.updated)
+                    return;
+                // check new facebook comments for tags
+                var comments = Client.FacebookComment.getNew(refreshId);
+                //let comments = FacebookComment.list;
+                if (comments.length == 0) {
+                    FacebookTag.updated = true;
+                    return;
+                }
+                var commentIds = [];
+                $.each(comments, function (index, obj) {
+                    if (obj.message.length > 5)
+                        commentIds.push(obj.id);
+                });
+                if (commentIds.length > 0) {
+                    var url = "https://graph.facebook.com/v2.8/?ids=" + commentIds.join(",") + "&fields=message_tags&access_token=" + access_token;
+                    $.getJSON(url, function (res) {
+                        $.each(res, function (index, obj) {
+                            if (obj.message_tags != undefined) {
+                                if (!FacebookTag.exists(obj.message_tags[0].id)) {
+                                    var userId = Client.FacebookComment.findById(obj.id).fromId;
+                                    FacebookTag.list.push(new FacebookTag(userId, obj.message_tags[0].id, refreshId));
+                                }
+                            }
+                        });
+                        FacebookTag.updated = true;
+                    });
+                }
+            };
+            FacebookTag.list = [];
+            FacebookTag.updated = false;
+            return FacebookTag;
+        }());
+        Client.FacebookTag = FacebookTag;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
+        var User = (function () {
+            function User(name, faction, fbId) {
+                this.name = name;
+                this.fbId = fbId;
+                this.faction = faction;
+                this.score = 0;
+                this.respawns = 0;
+                this.kills = 0;
+            }
+            User.findById = function (fbId) {
+                return User.list.filter(function (ul) {
+                    return ul.fbId == fbId;
+                })[0];
+            };
+            User.findByName = function (name) {
+                return User.list.filter(function (ul) {
+                    return ul.name == name;
+                })[0];
+            };
+            User.clearUserData = function () {
+                User.list.length = 0;
+            };
+            User.list = [];
+            return User;
+        }());
+        Client.User = User;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
 /// <reference path="../references.d.ts" />
 var FacebookWarGame;
 (function (FacebookWarGame) {
@@ -118,139 +270,6 @@ var FacebookWarGame;
 (function (FacebookWarGame) {
     var Client;
     (function (Client) {
-        var FacebookComment = (function () {
-            function FacebookComment() {
-            }
-            FacebookComment.prototype.getFaction = function () {
-                if (this.isFaction()) {
-                    return this.message.toLowerCase();
-                }
-                else {
-                    return "";
-                }
-            };
-            FacebookComment.prototype.isFaction = function () {
-                var faction = this.message.toLowerCase();
-                return (faction == "rebels" || faction == "empire");
-            };
-            FacebookComment.refreshList = function (pageId, postId, access_token, refreshId) {
-                if (FacebookComment.updated)
-                    return;
-                var url = 'https://graph.facebook.com/v2.8/?ids=' + pageId + "_" + postId + '&fields=comments&access_token=' + access_token;
-                $.getJSON(url, function (result) {
-                    result = result[pageId + "_" + postId].comments.data;
-                    FacebookComment.addRecordsFromJSON(result, refreshId);
-                    FacebookComment.updated = true;
-                });
-            };
-            FacebookComment.addRecordsFromJSON = function (jsonResult, refreshId) {
-                $.each(jsonResult, function (index, obj) {
-                    var fbComment = new FacebookComment();
-                    fbComment.created_time = obj.created_time;
-                    fbComment.fromId = obj.from.id;
-                    fbComment.fromName = obj.from.name;
-                    fbComment.id = obj.id;
-                    fbComment.message = obj.message;
-                    fbComment.refreshId = refreshId;
-                    if (FacebookComment.findById(fbComment.id) == undefined) {
-                        FacebookComment.list.push(fbComment);
-                    }
-                });
-            };
-            // get the new facebook comments since the last refresh
-            FacebookComment.getNew = function (refreshId) {
-                return FacebookComment.list.filter(function (ul) {
-                    return ul.refreshId >= refreshId;
-                });
-            };
-            FacebookComment.findByFromId = function (fromId) {
-                return FacebookComment.list.filter(function (ul) {
-                    return ul.fromId == fromId;
-                })[0];
-            };
-            FacebookComment.findById = function (id) {
-                return FacebookComment.list.filter(function (ul) {
-                    return ul.id == id;
-                })[0];
-            };
-            FacebookComment.list = [];
-            FacebookComment.updated = false;
-            return FacebookComment;
-        }());
-        Client.FacebookComment = FacebookComment;
-    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
-})(FacebookWarGame || (FacebookWarGame = {}));
-var FacebookWarGame;
-(function (FacebookWarGame) {
-    var Client;
-    (function (Client) {
-        var FacebookTag = (function () {
-            function FacebookTag(userId, tagId, refreshId) {
-                this.userId = userId;
-                this.tagId = tagId;
-                this.refreshId = refreshId;
-            }
-            FacebookTag.exists = function (taggedId) {
-                return (FacebookTag.list.filter(function (ul) {
-                    return (ul.tagId == taggedId);
-                })).length > 0;
-            };
-            FacebookTag.refreshList = function (access_token, refreshId) {
-                if (FacebookTag.updated)
-                    return;
-                if (!Client.FacebookComment.updated)
-                    return;
-                // check new facebook comments for tags
-                var comments = Client.FacebookComment.getNew(refreshId);
-                //let comments = FacebookComment.list;
-                if (comments.length == 0) {
-                    FacebookTag.updated = true;
-                    return;
-                }
-                var commentIds = [];
-                $.each(comments, function (index, obj) {
-                    if (obj.message.length > 5)
-                        commentIds.push(obj.id);
-                });
-                if (commentIds.length > 0) {
-                    var url = "https://graph.facebook.com/v2.8/?ids=" + commentIds.join(",") + "&fields=message_tags&access_token=" + access_token;
-                    $.getJSON(url, function (res) {
-                        $.each(res, function (index, obj) {
-                            if (obj.message_tags != undefined) {
-                                if (1 == 1 || !FacebookTag.exists(obj.message_tags[0].id)) {
-                                    var userId = Client.FacebookComment.findById(obj.id).fromId;
-                                    FacebookTag.list.push(new FacebookTag(userId, obj.message_tags[0].id, refreshId));
-                                }
-                            }
-                        });
-                        FacebookTag.updated = true;
-                    });
-                }
-            };
-            FacebookTag.list = [];
-            FacebookTag.updated = false;
-            return FacebookTag;
-        }());
-        Client.FacebookTag = FacebookTag;
-    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
-})(FacebookWarGame || (FacebookWarGame = {}));
-var FacebookWarGame;
-(function (FacebookWarGame) {
-    var Client;
-    (function (Client) {
-        (function (Direction) {
-            Direction[Direction["Up"] = 1] = "Up";
-            Direction[Direction["Right"] = 2] = "Right";
-            Direction[Direction["Down"] = 3] = "Down";
-            Direction[Direction["Left"] = 4] = "Left";
-        })(Client.Direction || (Client.Direction = {}));
-        var Direction = Client.Direction;
-    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
-})(FacebookWarGame || (FacebookWarGame = {}));
-var FacebookWarGame;
-(function (FacebookWarGame) {
-    var Client;
-    (function (Client) {
         var MechLib = (function () {
             function MechLib() {
             }
@@ -269,32 +288,13 @@ var FacebookWarGame;
 (function (FacebookWarGame) {
     var Client;
     (function (Client) {
-        var User = (function () {
-            function User(name, faction, fbId) {
-                this.name = name;
-                this.fbId = fbId;
-                this.faction = faction;
-                this.score = 0;
-                this.respawns = 0;
-                this.kills = 0;
-            }
-            User.findById = function (fbId) {
-                return User.list.filter(function (ul) {
-                    return ul.fbId == fbId;
-                })[0];
-            };
-            User.findByName = function (name) {
-                return User.list.filter(function (ul) {
-                    return ul.name == name;
-                })[0];
-            };
-            User.clearUserData = function () {
-                User.list.length = 0;
-            };
-            User.list = [];
-            return User;
-        }());
-        Client.User = User;
+        (function (Direction) {
+            Direction[Direction["Up"] = 1] = "Up";
+            Direction[Direction["Right"] = 2] = "Right";
+            Direction[Direction["Down"] = 3] = "Down";
+            Direction[Direction["Left"] = 4] = "Left";
+        })(Client.Direction || (Client.Direction = {}));
+        var Direction = Client.Direction;
     })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
 })(FacebookWarGame || (FacebookWarGame = {}));
 var FacebookWarGame;
@@ -338,13 +338,42 @@ var FacebookWarGame;
                 var style = { font: "12px Arial Black", fill: "#ffffff", align: "center" };
                 this.nameLabel = this.game.add.text(this.x, this.y - 48, this.name, style);
                 this.nameLabel.anchor.set(0.5);
+                this.healthBarBg = this.game.add.sprite(this.x, this.y, "barblack");
+                this.healthBarBg.width = 48;
+                this.healthBarBg.height = 8;
+                this.healthBarBg.anchor.set(0, 0.5);
+                this.healthBar = this.game.add.sprite(this.x + 1, this.y, "bargreen");
+                this.healthBar.width = 46;
+                this.healthBar.height = 6;
+                this.healthBar.anchor.set(0, 0.5);
+                this.updateHealthBar();
                 this.bulletTime = 0;
                 this.bulletsToFire = 3;
             }
             Player.prototype.kill = function () {
                 this.nameLabel.text = "";
+                this.healthBar.kill();
+                this.healthBarBg.kill();
                 _super.prototype.kill.call(this);
                 return this;
+            };
+            Player.prototype.updateHealthBar = function () {
+                if (this.alive && this.x > 0 && this.y > 0) {
+                    this.healthBar.visible = true;
+                    this.healthBarBg.visible = true;
+                    var x = this.x - 24;
+                    var y = this.y + 48;
+                    ;
+                    this.healthBar.x = x + 1;
+                    this.healthBar.y = y;
+                    this.healthBarBg.x = x;
+                    this.healthBarBg.y = y;
+                    this.healthBar.width = Math.floor(this.health / 100 * 46);
+                }
+                else {
+                    this.healthBar.visible = false;
+                    this.healthBarBg.visible = false;
+                }
             };
             Player.prototype.update = function () {
                 var mechSpeed = 80;
@@ -395,8 +424,7 @@ var FacebookWarGame;
                     }
                     this.nameLabel.x = this.x;
                     this.nameLabel.y = this.y - 48;
-                    if (this.health < 100)
-                        this.health += healthRate;
+                    this.updateHealthBar();
                 }
             };
             Player.prototype.destinationReached = function () {
@@ -470,43 +498,6 @@ var FacebookWarGame;
 (function (FacebookWarGame) {
     var Client;
     (function (Client) {
-        var Boot = (function (_super) {
-            __extends(Boot, _super);
-            function Boot() {
-                _super.apply(this, arguments);
-            }
-            Boot.prototype.preload = function () {
-                //You can preload an image here if you dont want to use text for the loading screen
-            };
-            Boot.prototype.create = function () {
-                this.stage.setBackgroundColor(0xFFFFFF);
-                this.input.maxPointers = 1;
-                this.stage.disableVisibilityChange = true;
-                if (this.game.device.desktop) {
-                    this.scale.pageAlignHorizontally = true;
-                }
-                else {
-                    // mobile
-                    //this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-                    this.scale.minWidth = 480;
-                    this.scale.minHeight = 260;
-                    this.scale.maxWidth = 1280;
-                    this.scale.maxHeight = 720;
-                    this.scale.forceLandscape = true;
-                    this.scale.pageAlignHorizontally = true;
-                    this.scale.refresh();
-                }
-                this.game.state.start("Preloader", true, false);
-            };
-            return Boot;
-        }(Phaser.State));
-        Client.Boot = Boot;
-    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
-})(FacebookWarGame || (FacebookWarGame = {}));
-var FacebookWarGame;
-(function (FacebookWarGame) {
-    var Client;
-    (function (Client) {
         var Arena = (function (_super) {
             __extends(Arena, _super);
             function Arena() {
@@ -522,11 +513,23 @@ var FacebookWarGame;
                 this.countDownTimer = new Client.CountDownTimer(10, 0);
                 this.leader = new Client.User("Annemarie Derwort-Steinvoort", "empire", "");
                 this.leader.score = 0;
+                this.rebelsScore = 0;
+                this.empireScore = 0;
                 this.leaderLabelText = this.game.add.text(game.world.centerX - 200, 70 - 14, "Current Leader", { font: "12pt Arial Black", fill: "#999999", stroke: "#000000", strokeThickness: 3 });
                 this.leaderNameText = this.game.add.text(game.world.centerX - 200, 94 - 14, this.leader.name, { font: "18pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
                 this.leaderFactionText = this.game.add.text(game.world.centerX - 200, 130 - 14, this.leader.faction.toUpperCase(), { font: "12pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
                 this.leaderScoreText = this.game.add.text(game.world.centerX + 214, 130 - 14, "Kills: " + this.leader.score.toString(), { font: "12pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
                 this.timerText = this.game.add.text(game.world.centerX + 214, 166 - 14, this.countDownTimer.getTimer(), { font: "10pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
+                this.rebelsText = this.game.add.text(game.world.centerX - 500, game.world.height - 36, "REBELS", { font: "16pt Arial Black", fill: "#009900", stroke: "#000000", strokeThickness: 3 });
+                this.empireText = this.game.add.text(game.world.centerX + 500, game.world.height - 36, "EMPIRE", { font: "16pt Arial Black", fill: "#990000", stroke: "#000000", strokeThickness: 3 });
+                this.vsText = this.game.add.text(game.world.centerX, game.world.height - 16, "vs", { font: "12pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 3 });
+                this.rebelsScoreText = this.game.add.text(game.world.centerX - 500, game.world.height - 16, "0", { font: "12pt Arial Black", fill: "#009900", stroke: "#000000", strokeThickness: 3 });
+                this.empireScoreText = this.game.add.text(game.world.centerX + 500, game.world.height - 16, "0", { font: "12pt Arial Black", fill: "#990000", stroke: "#000000", strokeThickness: 3 });
+                this.rebelsText.anchor.set(0.5);
+                this.rebelsScoreText.anchor.set(0.5);
+                this.empireText.anchor.set(0.5);
+                this.empireScoreText.anchor.set(0.5);
+                this.vsText.anchor.set(0.5);
                 this.leaderLabelText.anchor.set(0);
                 this.leaderNameText.anchor.set(0);
                 this.leaderFactionText.anchor.set(0);
@@ -556,10 +559,14 @@ var FacebookWarGame;
                 else {
                     this.timerText.text = "Round ends in: " + this.countDownTimer.getTimer();
                     if (this.game.input.keyboard.isDown(Phaser.Keyboard.DELETE)) {
-                        this.addEmpireUnit(new Client.User("Empire Robot", "empire"));
+                        var user = new Client.User("Empire Robot", "empire", "0");
+                        Client.User.list.push(user);
+                        this.addEmpireUnit(user);
                     }
                     if (this.game.input.keyboard.isDown(Phaser.Keyboard.INSERT)) {
-                        this.addRebelsUnit(new Client.User("Rebel Mech", "rebels"));
+                        var user = new Client.User("Rebel Mech", "rebels", "0");
+                        Client.User.list.push(user);
+                        this.addRebelsUnit(user);
                     }
                     if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
                         this.countDownTimer = new Client.CountDownTimer(0, 3);
@@ -570,16 +577,26 @@ var FacebookWarGame;
                     if (this.rebels.countLiving() === 0) {
                         this.empire.setAll("bulletsToFire", 0);
                     }
+                    if (this.empire.countLiving() < 3) {
+                        var user = new Client.User("Empire Robot " + (this.empire.countLiving() + 1).toString(), "empire", "0");
+                        Client.User.list.push(user);
+                        this.addEmpireUnit(user);
+                    }
+                    if (this.rebels.countLiving() < 3) {
+                        var user = new Client.User("Rebels Mech " + (this.rebels.countLiving() + 1).toString(), "rebels", "0");
+                        Client.User.list.push(user);
+                        this.addRebelsUnit(user);
+                    }
                     this.game.physics.arcade.overlap(this.bulletsEmpire, this.rebels, this.rebelHit, undefined, this);
                     this.game.physics.arcade.overlap(this.bulletsRebels, this.empire, this.empireHit, undefined, this);
                 }
             };
             Arena.prototype.addEmpireUnit = function (user) {
-                var health = 10; // 110;
+                var health = 100;
                 return this.addUnit(user, health, this.empire, this.world.width - 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(this.world.width * 0.75 + Math.random() * this.world.width * 0.25), Math.floor(Math.random() * this.world.height - 1) + 1);
             };
             Arena.prototype.addRebelsUnit = function (user) {
-                var health = 10; //110;
+                var health = 100;
                 return this.addUnit(user, health, this.rebels, 1, Math.floor(Math.random() * this.world.height - 1) + 1, Math.floor(Math.random() * this.world.width * 0.25) + 1, Math.floor(Math.random() * this.world.height - 1) + 1);
             };
             Arena.prototype.addUnitForUser = function (user) {
@@ -626,11 +643,21 @@ var FacebookWarGame;
                     explosion.play("Explosion", 30, false, true);
                     if (bullet.firedBy.user != undefined) {
                         bullet.firedBy.user.score++;
+                        if (Client.MechLib.isEmpire(bullet.firedBy.user.faction)) {
+                            this.empireScore++;
+                        }
+                        else {
+                            this.rebelsScore++;
+                        }
+                        this.rebelsScoreText.text = this.rebelsScore.toString();
+                        this.empireScoreText.text = this.empireScore.toString();
                         if (bullet.firedBy.user.score > this.leader.score || bullet.firedBy.user.name == this.leader.name) {
-                            this.leader = bullet.firedBy.user;
-                            this.leaderNameText.text = this.leader.name;
-                            this.leaderFactionText.text = this.leader.faction;
-                            this.leaderScoreText.text = "Kills: " + this.leader.score.toString();
+                            if (bullet.firedBy.user.fbId != "0") {
+                                this.leader = bullet.firedBy.user;
+                                this.leaderNameText.text = this.leader.name;
+                                this.leaderFactionText.text = this.leader.faction;
+                                this.leaderScoreText.text = "Kills: " + this.leader.score.toString();
+                            }
                         }
                     }
                 }
@@ -680,11 +707,50 @@ var FacebookWarGame;
             };
             Arena.prototype.roundNext = function () {
                 var leader = this.leader;
-                this.game.state.start("RoundStart", true, false, leader);
+                var leadingFactionScore = (this.empireScore > this.rebelsScore) ? this.empireScore : this.rebelsScore;
+                var leadingFaction = (this.empireScore > this.rebelsScore) ? "empire" : "rebels";
+                this.game.state.start("RoundStart", true, false, { leader: leader, leadingFaction: leadingFaction, leadingFactionScore: leadingFactionScore });
             };
             return Arena;
         }(Phaser.State));
         Client.Arena = Arena;
+    })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
+})(FacebookWarGame || (FacebookWarGame = {}));
+var FacebookWarGame;
+(function (FacebookWarGame) {
+    var Client;
+    (function (Client) {
+        var Boot = (function (_super) {
+            __extends(Boot, _super);
+            function Boot() {
+                _super.apply(this, arguments);
+            }
+            Boot.prototype.preload = function () {
+                //You can preload an image here if you dont want to use text for the loading screen
+            };
+            Boot.prototype.create = function () {
+                this.stage.setBackgroundColor(0xFFFFFF);
+                this.input.maxPointers = 1;
+                this.stage.disableVisibilityChange = true;
+                if (this.game.device.desktop) {
+                    this.scale.pageAlignHorizontally = true;
+                }
+                else {
+                    // mobile
+                    //this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+                    this.scale.minWidth = 480;
+                    this.scale.minHeight = 260;
+                    this.scale.maxWidth = 1280;
+                    this.scale.maxHeight = 720;
+                    this.scale.forceLandscape = true;
+                    this.scale.pageAlignHorizontally = true;
+                    this.scale.refresh();
+                }
+                this.game.state.start("Preloader", true, false);
+            };
+            return Boot;
+        }(Phaser.State));
+        Client.Boot = Boot;
     })(Client = FacebookWarGame.Client || (FacebookWarGame.Client = {}));
 })(FacebookWarGame || (FacebookWarGame = {}));
 var FacebookWarGame;
@@ -699,10 +765,16 @@ var FacebookWarGame;
             Preloader.prototype.preload = function () {
                 this.loaderText = this.game.add.text(this.world.centerX, 200, "Loading the battlefield...", { font: "18px Arial", fill: "#A9A91111", align: "center" });
                 this.loaderText.anchor.setTo(0.5);
+                this.load.image("barblack", "./assets/sprites/BarBlack.png");
+                this.load.image("bargreen", "./assets/sprites/BarGreen.png");
+                this.load.image("baryellow", "./assets/sprites/BarYellow.png");
+                this.load.image("barred", "./assets/sprites/BarRed.png");
+                this.load.image("plane", "./assets/sprites/Starfighter.png");
                 this.load.tilemap("arena", "./assets/sprites/arena.json", undefined, Phaser.Tilemap.TILED_JSON);
                 this.load.image("ground", "./assets/sprites/mountain_landscape.png");
                 this.load.image("bullet", "./assets/sprites/bullet.png");
-                this.load.image("roundBackground", "./assets/ui/roundBackground.png");
+                this.load.image("roundBackground_rebels", "./assets/ui/roundBackground_rebels.png");
+                this.load.image("roundBackground_empire", "./assets/ui/roundBackground_empire.png");
                 for (var i = 1; i <= 5; i++) {
                     this.load.audio("explosion" + i.toString(), "./assets/sounds/Explosion" + i.toString() + ".mp3", true);
                 }
@@ -737,18 +809,24 @@ var FacebookWarGame;
             function RoundStart() {
                 _super.apply(this, arguments);
             }
-            RoundStart.prototype.init = function (leader) {
-                this.leader = leader;
+            RoundStart.prototype.init = function (inputParams) {
+                this.leader = inputParams.leader;
+                this.faction = inputParams.leadingFaction;
+                this.score = inputParams.leadingFactionScore;
             };
             RoundStart.prototype.create = function () {
                 this.countDownTimer = new Client.CountDownTimer(0, 15);
-                this.background = this.add.tileSprite(0, 0, 1280, 720, 'roundBackground');
+                this.background = this.add.tileSprite(0, 0, 1280, 720, 'roundBackground_' + this.faction);
                 this.background.alpha = 0;
+                this.factionText = this.add.game.add.text(game.world.centerX, 30, this.faction.toUpperCase() + " DOMINATED THIS ROUND!", { font: "24pt Arial Black", fill: "#FFFFFF", stroke: "#000000", strokeThickness: 5 });
+                this.scoreText = this.add.game.add.text(game.world.centerX, 66, this.score.toString() + " kills", { font: "18pt Arial Black", fill: "#FFFFFF", stroke: "#000000", strokeThickness: 5 });
                 this.leaderLabelText = this.game.add.text(game.world.centerX - 400, game.world.centerY - 45, "Round winner", { font: "12pt Arial Black", fill: "#AAAAAA", stroke: "#000000", strokeThickness: 3 });
                 this.leaderNameText = this.game.add.text(game.world.centerX - 400, game.world.centerY, this.leader.name, { font: "24pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
                 this.leaderFactionText = this.game.add.text(game.world.centerX - 400, game.world.centerY + 45, this.leader.faction.toUpperCase(), { font: "12pt Arial Black", fill: "#AAAAAA", stroke: "#000000", strokeThickness: 3 });
                 this.leaderScoreText = this.game.add.text(game.world.centerX - 400, game.world.centerY + 90, this.leader.score.toString() + " kills", { font: "24pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
                 this.timerText = this.game.add.text(game.world.centerX - 400, game.world.height - 50, this.countDownTimer.getTimer(), { font: "30pt Arial Black", fill: "#ffffff", stroke: "#000000", strokeThickness: 5 });
+                this.factionText.anchor.set(0.5);
+                this.scoreText.anchor.set(0.5);
                 this.leaderLabelText.anchor.set(0, 0.5);
                 this.leaderNameText.anchor.set(0, 0.5);
                 this.leaderFactionText.anchor.set(0, 0.5);
