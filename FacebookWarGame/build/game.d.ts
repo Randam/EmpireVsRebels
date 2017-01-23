@@ -181,6 +181,19 @@ declare module FacebookWarGame.Client {
     }
 }
 declare module FacebookWarGame.Client {
+    class FacebookShare {
+        static list: Array<FacebookShare>;
+        static updated: boolean;
+        userId: string;
+        shareId: string;
+        consumed: boolean;
+        constructor(userId: string, shareId: string);
+        static exists(shareId: string): boolean;
+        static getNew(): Array<FacebookShare>;
+        static refreshList(pageId: string, postId: string, access_token: string): void;
+    }
+}
+declare module FacebookWarGame.Client {
     class FacebookTag {
         static list: Array<FacebookTag>;
         static updated: boolean;
@@ -216,6 +229,8 @@ declare let access_token: string;
 declare let pageId: string;
 declare let postId: string;
 declare let refreshId: number;
+declare let sharesCount: number;
+declare let doAirRaid: boolean;
 declare let game: FacebookWarGame.Client.GameEngine;
 declare function addUnit(name: string, fbId: string, faction: string): void;
 declare function processFacebookData(): void;
@@ -319,6 +334,7 @@ declare module FacebookWarGame.Client {
         update(): void;
         prepareAirRaid(airRaidUser: User): void;
         private startAirRaid();
+        private isAirRaidInProgress();
         addEmpireUnit(user: User): Player;
         addRebelsUnit(user: User): Player;
         addUnitForUser(user: User): void;

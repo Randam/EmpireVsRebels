@@ -30,7 +30,6 @@
 
             // check new facebook comments for tags
             let comments = FacebookComment.getNew(refreshId);
-            //let comments = FacebookComment.list;
 
             if (comments.length == 0) {
                 FacebookTag.updated = true;

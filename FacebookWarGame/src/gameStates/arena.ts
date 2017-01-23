@@ -174,7 +174,7 @@
             this.airRaidUser = airRaidUser;
             this.airRaidText.visible = true;
             this.airRaidText.fontSize = 1;
-            this.airRaidText.text = this.airRaidUser.faction.toUpperCase() + " Air Strike by " + this.airRaidUser.name;
+            this.airRaidText.text = this.airRaidUser.faction.toUpperCase() + " Air Strike incoming!"; // + this.airRaidUser.name;
             this.airRaidSound.onStop.add(this.startAirRaid, this);
             this.airRaidSound.play();
         }
@@ -182,6 +182,16 @@
         private startAirRaid() {
             this.airRaidText.visible = false;
             this.plane.startAirRaid(this.airRaidUser);
+        }
+
+        private isAirRaidInProgress(): boolean {
+            if (this.plane.visible)
+                return true;
+
+            if (this.airRaidSound.isPlaying)
+                return true;
+
+            return false;
         }
 
         public addEmpireUnit(user: User): Player {

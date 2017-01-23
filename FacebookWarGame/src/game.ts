@@ -16,11 +16,13 @@ module FacebookWarGame.Client {
     }
 
 }
-
-let access_token: string = '1850233771859903|UZReV_K_e2zP6w7y7xxOgfyNauU';  // PASTE HERE YOUR FACEBOOK ACCESS TOKEN
+//let access_token: string = '1850233771859903|UZReV_K_e2zP6w7y7xxOgfyNauU';  // PASTE HERE YOUR FACEBOOK ACCESS TOKEN
+let access_token: string = 'EAAaSxx65H78BAN1ZCSH9wWVMHLeZBh5a5follRbobXwZBLyIP2njG5dSBkZBXfDWzdPUq7PtHXeTpVzLOddEHzsB9TBo1DNN3rqDhpaNYBZBcXCkZBBfi7leBxI7ucuTlbmcJWUmxzDJqWvxUU8UyijVOHXHplZCQ8ZD'; // get here: https://smashballoon.com/custom-facebook-feed/docs/get-extended-facebook-user-access-token/
 let pageId: string = '314813142252248';                                     // PASTE HERE YOUR PAGE ID
 let postId: string = '325905601143002';                                     // PASTE HERE YOUR POST ID  
 let refreshId: number = 0;
+let sharesCount: number = 0;
+let doAirRaid: boolean = false;
 
 let game: FacebookWarGame.Client.GameEngine = null;
 
@@ -38,8 +40,8 @@ function addUnit(name: string, fbId: string, faction: string): void {
 window.onload = () => {
     game = new FacebookWarGame.Client.GameEngine();
 
-    //setInterval(processFacebookData, 4000);
-    //setInterval(updateGame, 500);
+    setInterval(processFacebookData, 4000);
+    setInterval(updateGame, 500);
 };
 
 function processFacebookData() {
@@ -48,11 +50,28 @@ function processFacebookData() {
     
     // check for unique tags, and add/respawn a user if he has tagged someone and was previously in the game
     FacebookWarGame.Client.FacebookTag.refreshList(access_token, refreshId);
+
+    // check for shares
+    //FacebookWarGame.Client.FacebookShare.refreshList(pageId, postId, access_token);
+
+    let url: string = "https://graph.facebook.com/v2.8/" + pageId + "_" + postId + "?fields=shares&access_token=" + access_token;
+    $.getJSON(url, function (res) {
+        if (res.shares != undefined) {
+            let fbShares: number = res.shares.count;
+
+            if (fbShares > sharesCount) {
+                sharesCount++;
+                doAirRaid = true;
+            }
+        }
+    });
+
 }
 
 function updateGame() {
     if (FacebookWarGame.Client.FacebookComment.updated && FacebookWarGame.Client.FacebookTag.updated) {
 
+        // process spawns
         $.each(FacebookWarGame.Client.FacebookComment.list, function (index, comment) {
             if (comment.refreshId === refreshId) {
                 if (comment.isFaction()) {
@@ -65,6 +84,7 @@ function updateGame() {
             }
         });
 
+        // progress respawns
         $.each(FacebookWarGame.Client.FacebookTag.list, function (index, tag) {
             if (tag.refreshId === refreshId) {
                 if (FacebookWarGame.Client.User.findById(tag.userId) !== undefined) {
@@ -83,5 +103,27 @@ function updateGame() {
         FacebookWarGame.Client.FacebookComment.updated = false;
         FacebookWarGame.Client.FacebookTag.updated = false;
         refreshId++;
+    }
+
+    // process air raids
+    if (doAirRaid) {
+        if (!game.state.states.Arena.isAirRaidInProgress()) {
+            let rebelCount: number = (game.state.states.Arena.rebels.countLiving());
+            let empireCount: number = (game.state.states.Arena.empire.countLiving());
+
+            if (rebelCount == empireCount) {
+                // choose random faction
+                rebelCount += Math.floor(Math.random() * 100);
+                empireCount += Math.floor(Math.random() * 100);
+            }
+
+            if (rebelCount > empireCount) {
+                game.state.states.Arena.prepareAirRaid(new FacebookWarGame.Client.User("Empire AirStrike", "empire", "0"));
+                doAirRaid = false;
+            } else if (empireCount > rebelCount) {
+                game.state.states.Arena.prepareAirRaid(new FacebookWarGame.Client.User("Rebel AirStrike", "rebels", "0"));
+                doAirRaid = false;
+            } 
+        }
     }
 }

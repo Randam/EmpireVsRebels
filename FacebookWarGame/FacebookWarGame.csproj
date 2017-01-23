@@ -95,6 +95,7 @@
     <TypeScriptCompile Include="scripts\typings\System\Collections\IEqualityComparer.ts" />
     <TypeScriptCompile Include="scripts\typings\System\Collections\IGrouping.ts" />
     <TypeScriptCompile Include="scripts\typings\System\Object.ts" />
+    <TypeScriptCompile Include="src\facebookObjects\facebookShares.ts" />
     <TypeScriptCompile Include="src\game.ts" />
     <TypeScriptCompile Include="src\gameLib\countDownTimer.ts" />
     <TypeScriptCompile Include="src\facebookObjects\facebookComments.ts" />
