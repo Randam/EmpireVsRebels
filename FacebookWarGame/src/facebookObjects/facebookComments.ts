@@ -34,9 +34,11 @@
             let url: string = 'https://graph.facebook.com/v2.8/?ids=' + pageId + "_" + postId + '&fields=comments&access_token=' + access_token;
 
             $.getJSON(url, function (result) {
-                result = result[pageId + "_" + postId].comments.data;
-                FacebookComment.addRecordsFromJSON(result, refreshId);
-                FacebookComment.updated = true;
+                if (result[pageId + "_" + postId] !== undefined) {
+                    result = result[pageId + "_" + postId].comments.data;
+                    FacebookComment.addRecordsFromJSON(result, refreshId);
+                    FacebookComment.updated = true;
+                }
             });
         }
 

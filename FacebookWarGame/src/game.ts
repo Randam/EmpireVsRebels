@@ -19,7 +19,7 @@ module FacebookWarGame.Client {
 //let access_token: string = '1850233771859903|UZReV_K_e2zP6w7y7xxOgfyNauU';  // PASTE HERE YOUR FACEBOOK ACCESS TOKEN
 let access_token: string = 'EAAaSxx65H78BAN1ZCSH9wWVMHLeZBh5a5follRbobXwZBLyIP2njG5dSBkZBXfDWzdPUq7PtHXeTpVzLOddEHzsB9TBo1DNN3rqDhpaNYBZBcXCkZBBfi7leBxI7ucuTlbmcJWUmxzDJqWvxUU8UyijVOHXHplZCQ8ZD'; // get here: https://smashballoon.com/custom-facebook-feed/docs/get-extended-facebook-user-access-token/
 let pageId: string = '314813142252248';                                     // PASTE HERE YOUR PAGE ID
-let postId: string = '325905601143002';                                     // PASTE HERE YOUR POST ID  
+let postId: string = '328271600906402';                                     // PASTE HERE YOUR POST ID  
 let refreshId: number = 0;
 let sharesCount: number = 0;
 let doAirRaid: boolean = false;
@@ -71,15 +71,16 @@ function processFacebookData() {
 function updateGame() {
     if (FacebookWarGame.Client.FacebookComment.updated && FacebookWarGame.Client.FacebookTag.updated) {
 
-        // process spawns
+        // process spawns & respawns
         $.each(FacebookWarGame.Client.FacebookComment.list, function (index, comment) {
             if (comment.refreshId === refreshId) {
                 if (comment.isFaction()) {
-                    if (FacebookWarGame.Client.User.findById(comment.fromId) === undefined) {
-                        let user = new FacebookWarGame.Client.User(comment.fromName, comment.getFaction(), comment.fromId);
+                    let user = FacebookWarGame.Client.User.findById(comment.fromId);
+                    if (user === undefined) {
+                        user = new FacebookWarGame.Client.User(comment.fromName, comment.getFaction(), comment.fromId);
                         FacebookWarGame.Client.User.list.push(user);
-                        game.state.states.Arena.addUnitForUser(user);
                     }
+                    game.state.states.Arena.addUnitForUser(user);
                 }
             }
         });

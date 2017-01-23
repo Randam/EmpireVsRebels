@@ -27,9 +27,11 @@ var FacebookWarGame;
                     return;
                 var url = 'https://graph.facebook.com/v2.8/?ids=' + pageId + "_" + postId + '&fields=comments&access_token=' + access_token;
                 $.getJSON(url, function (result) {
-                    result = result[pageId + "_" + postId].comments.data;
-                    FacebookComment.addRecordsFromJSON(result, refreshId);
-                    FacebookComment.updated = true;
+                    if (result[pageId + "_" + postId] !== undefined) {
+                        result = result[pageId + "_" + postId].comments.data;
+                        FacebookComment.addRecordsFromJSON(result, refreshId);
+                        FacebookComment.updated = true;
+                    }
                 });
             };
             FacebookComment.addRecordsFromJSON = function (jsonResult, refreshId) {
@@ -219,7 +221,7 @@ var FacebookWarGame;
 //let access_token: string = '1850233771859903|UZReV_K_e2zP6w7y7xxOgfyNauU';  // PASTE HERE YOUR FACEBOOK ACCESS TOKEN
 var access_token = 'EAAaSxx65H78BAN1ZCSH9wWVMHLeZBh5a5follRbobXwZBLyIP2njG5dSBkZBXfDWzdPUq7PtHXeTpVzLOddEHzsB9TBo1DNN3rqDhpaNYBZBcXCkZBBfi7leBxI7ucuTlbmcJWUmxzDJqWvxUU8UyijVOHXHplZCQ8ZD'; // get here: https://smashballoon.com/custom-facebook-feed/docs/get-extended-facebook-user-access-token/
 var pageId = '314813142252248'; // PASTE HERE YOUR PAGE ID
-var postId = '325905601143002'; // PASTE HERE YOUR POST ID  
+var postId = '328271600906402'; // PASTE HERE YOUR POST ID  
 var refreshId = 0;
 var sharesCount = 0;
 var doAirRaid = false;
@@ -257,15 +259,16 @@ function processFacebookData() {
 }
 function updateGame() {
     if (FacebookWarGame.Client.FacebookComment.updated && FacebookWarGame.Client.FacebookTag.updated) {
-        // process spawns
+        // process spawns & respawns
         $.each(FacebookWarGame.Client.FacebookComment.list, function (index, comment) {
             if (comment.refreshId === refreshId) {
                 if (comment.isFaction()) {
-                    if (FacebookWarGame.Client.User.findById(comment.fromId) === undefined) {
-                        var user = new FacebookWarGame.Client.User(comment.fromName, comment.getFaction(), comment.fromId);
+                    var user = FacebookWarGame.Client.User.findById(comment.fromId);
+                    if (user === undefined) {
+                        user = new FacebookWarGame.Client.User(comment.fromName, comment.getFaction(), comment.fromId);
                         FacebookWarGame.Client.User.list.push(user);
-                        game.state.states.Arena.addUnitForUser(user);
                     }
+                    game.state.states.Arena.addUnitForUser(user);
                 }
             }
         });
@@ -615,7 +618,7 @@ var FacebookWarGame;
                 var ground_layer = this.map.createLayer("ground_layer");
                 var top_layer = this.map.createLayer("top_layer");
                 this.countDownTimer = new Client.CountDownTimer(10, 0);
-                this.leader = new Client.User("Annemarie Derwort-Steinvoort", "empire", "");
+                this.leader = new Client.User("Lord Helmet", "empire", "");
                 this.leader.score = 0;
                 this.rebelsScore = 0;
                 this.empireScore = 0;
@@ -649,7 +652,7 @@ var FacebookWarGame;
                 this.plane.anchor.set(0.5);
                 this.game.add.existing(this.plane);
                 this.explosions = this.add.group();
-                this.explosions.createMultiple(60, "Explosion");
+                this.explosions.createMultiple(30, "Explosion");
                 this.explosions.callAll("animations.add", "animations", "Explosion", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 20, true);
                 for (var i = 1; i <= 5; i++) {
                     this.explodingSound.push(this.add.sound("explosion" + i.toString()));
@@ -695,12 +698,12 @@ var FacebookWarGame;
                     if (this.rebels.countLiving() === 0) {
                         this.empire.setAll("bulletsToFire", 0);
                     }
-                    if (this.empire.countLiving() < 3) {
+                    if (this.empire.countLiving() < 2) {
                         var user = new Client.User("Empire Robot " + (this.empire.countLiving() + 1).toString(), "empire", "0");
                         Client.User.list.push(user);
                         this.addEmpireUnit(user);
                     }
-                    if (this.rebels.countLiving() < 3) {
+                    if (this.rebels.countLiving() < 2) {
                         var user = new Client.User("Rebels Mech " + (this.rebels.countLiving() + 1).toString(), "rebels", "0");
                         Client.User.list.push(user);
                         this.addRebelsUnit(user);
@@ -817,7 +820,7 @@ var FacebookWarGame;
                     var explosion = this.explosions.getFirstExists(false);
                     explosion.scale = new Phaser.Point(0.2, 0.2);
                     explosion.reset(collider.body.x, collider.body.y);
-                    explosion.play("Explosion", 60, false, true);
+                    explosion.play("Explosion", 30, false, true);
                 }
             };
             Arena.prototype.initUnitGroup = function (faction) {
@@ -840,7 +843,7 @@ var FacebookWarGame;
                 var bullets = this.add.group();
                 bullets.enableBody = true;
                 bullets.physicsBodyType = Phaser.Physics.ARCADE;
-                for (var i = 0; i < 50; i++) {
+                for (var i = 0; i < 30; i++) {
                     bullets.add(new Client.Bullet(this.game, 0, 0));
                 }
                 bullets.setAll("anchor.x", 0.5);

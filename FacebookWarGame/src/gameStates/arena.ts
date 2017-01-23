@@ -46,7 +46,7 @@
 
             this.countDownTimer = new CountDownTimer(10, 0);
 
-            this.leader = new User("Annemarie Derwort-Steinvoort", "empire", "");
+            this.leader = new User("Lord Helmet", "empire", "");
             this.leader.score = 0;
             this.rebelsScore = 0;
             this.empireScore = 0;
@@ -88,7 +88,7 @@
             this.game.add.existing(this.plane);
 
             this.explosions = this.add.group();
-            this.explosions.createMultiple(60, "Explosion");
+            this.explosions.createMultiple(30, "Explosion");
             this.explosions.callAll(
                 "animations.add",
                 "animations",
@@ -152,12 +152,12 @@
                     this.empire.setAll("bulletsToFire", 0);
                 }
 
-                if (this.empire.countLiving() < 3) {
+                if (this.empire.countLiving() < 2) {
                     let user: User = new User("Empire Robot " + (this.empire.countLiving() + 1).toString(), "empire", "0");
                     User.list.push(user);
                     this.addEmpireUnit(user);
                 }
-                if (this.rebels.countLiving() < 3) {
+                if (this.rebels.countLiving() < 2) {
                     let user: User = new User("Rebels Mech " + (this.rebels.countLiving() + 1).toString(), "rebels", "0");
                     User.list.push(user);
                     this.addRebelsUnit(user);
@@ -321,7 +321,7 @@
                 var explosion: Phaser.Sprite = this.explosions.getFirstExists(false);
                 explosion.scale = new Phaser.Point(0.2, 0.2);
                 explosion.reset(collider.body.x, collider.body.y);
-                explosion.play("Explosion", 60, false, true);
+                explosion.play("Explosion", 30, false, true);
             }
         }
 
@@ -349,7 +349,7 @@
             let bullets: Phaser.Group = this.add.group();
             bullets.enableBody = true;
             bullets.physicsBodyType = Phaser.Physics.ARCADE;
-            for (let i: number = 0; i < 50; i++) {
+            for (let i: number = 0; i < 30; i++) {
                 bullets.add(new Bullet(this.game, 0, 0));
             }
 
