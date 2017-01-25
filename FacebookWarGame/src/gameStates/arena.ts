@@ -84,6 +84,7 @@
             this.empire = this.initUnitGroup("empire");
 
             this.plane = new Plane(this.game);
+
             this.plane.anchor.set(0.5);
             this.game.add.existing(this.plane);
 
@@ -100,6 +101,7 @@
             for (let i: number = 1; i <= 5; i++) {
                 this.explodingSound.push(this.add.sound("explosion" + i.toString()));
             }
+
             this.bgm = this.add.sound("bgm", 0.5, true);
             this.bgm.onDecoded.add(this.startMusic, this);
 
@@ -112,9 +114,8 @@
 
         update(): void {
             if (this.countDownTimer.timerExpired()) {
-                this.timerText.text = "Round ended!";
-                this.bgm.onFadeComplete.add(this.roundNext, this);
-                this.bgm.fadeOut(500);
+                this.roundNext();
+                return;
             }
             else {
                 this.timerText.text = "Round ends in: " + this.countDownTimer.getTimer();
@@ -131,11 +132,11 @@
                     this.addRebelsUnit(user);
                 }
 
-                if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC) && this.countDownTimer.getSecondsLeft() > 3) {
                     this.countDownTimer = new CountDownTimer(0, 3);
                 }
 
-                if (this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER) && !this.isAirRaidInProgress()) {
                     this.prepareAirRaid(User.list[Math.floor(Math.random() * User.list.length)]);
                 }
 
@@ -195,7 +196,7 @@
         }
 
         public addEmpireUnit(user: User): Player {
-            let health: number = 100;
+            let health: number = (user == undefined || user.fbId == "0") ? 10 : 100;
 
             return this.addUnit(
                 user,
@@ -208,7 +209,7 @@
         }
 
         public addRebelsUnit(user: User): Player {
-            let health: number = 100;
+            let health: number = (user == undefined || user.fbId == "0") ? 10 : 100;
 
             return this.addUnit(
                 user,
@@ -241,6 +242,7 @@
                 unit.name = user.name;
                 unit.health = health;
                 unit.destination = new Phaser.Point(destX, destY);
+                unit.setLabelColor((unit.user.fbId == "0") ? "#999999" : "#ffffff");
 
                 return unit;
             }
@@ -274,7 +276,7 @@
         }
 
         private unitHit(collider: Phaser.Sprite, user: User, unit: Player): void {
-            unit.health -= 25;
+            unit.health -= 15;
 
             if (unit.health <= 0) {
                 let destroyedText: string = unit.name + " was destroyed. ";
@@ -372,9 +374,13 @@
         roundNext() {
             let leader: User = this.leader;
 
+            this.timerText.text = "Round ended!";
+
             let leadingFactionScore: number = (this.empireScore > this.rebelsScore) ? this.empireScore : this.rebelsScore;
             let leadingFaction: string = (this.empireScore > this.rebelsScore) ? "empire" : "rebels";
 
+            this.bgm.stop();
+            this.bgm.destroy();
             this.game.state.start("RoundStart", true, false, { leader, leadingFaction, leadingFactionScore })
         }
     }

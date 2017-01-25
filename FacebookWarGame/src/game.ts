@@ -4,7 +4,7 @@ module FacebookWarGame.Client {
     export class GameEngine extends Phaser.Game {
 
         constructor() {
-            super(1280, 720, Phaser.AUTO, "content", null);
+            super(1280, 720, Phaser.CANVAS, "content", null);
 
             this.state.add("Boot", Boot, false);
             this.state.add("Preloader", Preloader, false);
@@ -19,7 +19,7 @@ module FacebookWarGame.Client {
 //let access_token: string = '1850233771859903|UZReV_K_e2zP6w7y7xxOgfyNauU';  // PASTE HERE YOUR FACEBOOK ACCESS TOKEN
 let access_token: string = 'EAAaSxx65H78BAN1ZCSH9wWVMHLeZBh5a5follRbobXwZBLyIP2njG5dSBkZBXfDWzdPUq7PtHXeTpVzLOddEHzsB9TBo1DNN3rqDhpaNYBZBcXCkZBBfi7leBxI7ucuTlbmcJWUmxzDJqWvxUU8UyijVOHXHplZCQ8ZD'; // get here: https://smashballoon.com/custom-facebook-feed/docs/get-extended-facebook-user-access-token/
 let pageId: string = '314813142252248';                                     // PASTE HERE YOUR PAGE ID
-let postId: string = '328271600906402';                                     // PASTE HERE YOUR POST ID  
+let postId: string = '328323027567926';                                     // PASTE HERE YOUR POST ID  
 let refreshId: number = 0;
 let sharesCount: number = 0;
 let doAirRaid: boolean = false;
@@ -27,11 +27,10 @@ let doAirRaid: boolean = false;
 let game: FacebookWarGame.Client.GameEngine = null;
 
 function addUnit(name: string, fbId: string, faction: string): void {
-    let user: FacebookWarGame.Client.User = FacebookWarGame.Client.User.findById(fbId);
-
-    if (user === undefined) {
+    let user: FacebookWarGame.Client.User = FacebookWarGame.Client.User.findByName(name);
+    
+    if (user == undefined || user.fbId == "0") {
         user = new FacebookWarGame.Client.User(name, faction, fbId);
-        FacebookWarGame.Client.User.list.push(user);
     }
 
     game.state.states.Arena.addUnitForUser(user);
@@ -85,7 +84,7 @@ function updateGame() {
             }
         });
 
-        // progress respawns
+        // process respawns
         $.each(FacebookWarGame.Client.FacebookTag.list, function (index, tag) {
             if (tag.refreshId === refreshId) {
                 if (FacebookWarGame.Client.User.findById(tag.userId) !== undefined) {

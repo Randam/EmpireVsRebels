@@ -162,25 +162,6 @@ interface JSON {
     StringifyNonCircular(obj: any): string;
 }
 declare module FacebookWarGame.Client {
-    class FacebookComment {
-        static list: Array<FacebookComment>;
-        static updated: boolean;
-        created_time: Date;
-        fromName: string;
-        fromId: string;
-        message: string;
-        id: string;
-        refreshId: number;
-        getFaction(): string;
-        isFaction(): boolean;
-        static refreshList(pageId: string, postId: string, access_token: string, refreshId: number): void;
-        static addRecordsFromJSON(jsonResult: any, refreshId: number): void;
-        static getNew(refreshId: number): Array<FacebookComment>;
-        static findByFromId(fromId: string): FacebookComment;
-        static findById(id: string): FacebookComment;
-    }
-}
-declare module FacebookWarGame.Client {
     class FacebookShare {
         static list: Array<FacebookShare>;
         static updated: boolean;
@@ -191,33 +172,6 @@ declare module FacebookWarGame.Client {
         static exists(shareId: string): boolean;
         static getNew(): Array<FacebookShare>;
         static refreshList(pageId: string, postId: string, access_token: string): void;
-    }
-}
-declare module FacebookWarGame.Client {
-    class FacebookTag {
-        static list: Array<FacebookTag>;
-        static updated: boolean;
-        userId: string;
-        tagId: string;
-        refreshId: number;
-        constructor(userId: string, tagId: string, refreshId: number);
-        static exists(taggedId: string): boolean;
-        static refreshList(access_token: string, refreshId: number): void;
-    }
-}
-declare module FacebookWarGame.Client {
-    class User {
-        static list: Array<User>;
-        name: string;
-        fbId: string;
-        faction: string;
-        score: number;
-        respawns: number;
-        kills: number;
-        constructor(name?: string, faction?: string, fbId?: string);
-        static findById(fbId: string): User;
-        static findByName(name: string): User;
-        static clearUserData(): void;
     }
 }
 declare module FacebookWarGame.Client {
@@ -249,9 +203,34 @@ declare module FacebookWarGame.Client {
     }
 }
 declare module FacebookWarGame.Client {
-    class MechLib {
-        static isRebels(faction: string): boolean;
-        static isEmpire(faction: string): boolean;
+    class FacebookComment {
+        static list: Array<FacebookComment>;
+        static updated: boolean;
+        created_time: Date;
+        fromName: string;
+        fromId: string;
+        message: string;
+        id: string;
+        refreshId: number;
+        getFaction(): string;
+        isFaction(): boolean;
+        static refreshList(pageId: string, postId: string, access_token: string, refreshId: number): void;
+        static addRecordsFromJSON(jsonResult: any, refreshId: number): void;
+        static getNew(refreshId: number): Array<FacebookComment>;
+        static findByFromId(fromId: string): FacebookComment;
+        static findById(id: string): FacebookComment;
+    }
+}
+declare module FacebookWarGame.Client {
+    class FacebookTag {
+        static list: Array<FacebookTag>;
+        static updated: boolean;
+        userId: string;
+        tagId: string;
+        refreshId: number;
+        constructor(userId: string, tagId: string, refreshId: number);
+        static exists(taggedId: string): boolean;
+        static refreshList(access_token: string, refreshId: number): void;
     }
 }
 declare module FacebookWarGame.Client {
@@ -260,6 +239,27 @@ declare module FacebookWarGame.Client {
         Right = 2,
         Down = 3,
         Left = 4,
+    }
+}
+declare module FacebookWarGame.Client {
+    class MechLib {
+        static isRebels(faction: string): boolean;
+        static isEmpire(faction: string): boolean;
+    }
+}
+declare module FacebookWarGame.Client {
+    class User {
+        static list: Array<User>;
+        name: string;
+        fbId: string;
+        faction: string;
+        score: number;
+        respawns: number;
+        kills: number;
+        constructor(name?: string, faction?: string, fbId?: string);
+        static findById(fbId: string): User;
+        static findByName(name: string): User;
+        static clearUserData(): void;
     }
 }
 declare module FacebookWarGame.Client {
@@ -294,11 +294,18 @@ declare module FacebookWarGame.Client {
         private score;
         constructor(faction: string, game: Phaser.Game, x: number, y: number, bullets: Phaser.Group);
         kill(): Phaser.Sprite;
+        setLabelColor(fill: string): void;
         updateHealthBar(): void;
         update(): void;
         private destinationReached();
         private setNewDestination();
         private fireBullet();
+    }
+}
+declare module FacebookWarGame.Client {
+    class Boot extends Phaser.State {
+        preload(): void;
+        create(): void;
     }
 }
 declare module FacebookWarGame.Client {
@@ -350,12 +357,6 @@ declare module FacebookWarGame.Client {
         private initBulletGroup(faction);
         startMusic(): void;
         roundNext(): void;
-    }
-}
-declare module FacebookWarGame.Client {
-    class Boot extends Phaser.State {
-        preload(): void;
-        create(): void;
     }
 }
 declare module FacebookWarGame.Client {

@@ -37,8 +37,9 @@
         }
 
         create() {
-            var tween = this.add.tween(this.loaderText).to({ alpha: 0 }, 1000,
+            var tween = this.add.tween(this.loaderText).to({ alpha: 0 }, 500,
                 Phaser.Easing.Linear.None, true);
+
             tween.onComplete.add(this.startArena, this);
         }
 

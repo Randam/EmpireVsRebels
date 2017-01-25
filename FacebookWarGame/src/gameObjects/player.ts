@@ -31,8 +31,7 @@
             this.game.add.existing(this);
             // physics
             this.game.physics.enable(this);
-            this.body.collideWorldBounds = true;
-            this.body.setCircle(20);
+            this.body.collideWorldBounds = false;
             this.walkingSound = game.add.sound("step", 0.5);
             this.firingSound = game.add.sound("laser");
 
@@ -63,6 +62,10 @@
             return this;
         }
 
+        setLabelColor(fill: string) {
+            this.nameLabel.fill = fill;
+        }
+
         updateHealthBar() {
             if (this.alive && this.x > 0 && this.y > 0) {
                 this.healthBar.visible = true;
@@ -86,7 +89,7 @@
         }
 
         update(): void {
-            let mechSpeed: number = 80;
+            let mechSpeed: number = 100;
             let healthRate: number = 0;
 
             if (this.alive && this.x > 0 && this.y > 0) {
@@ -148,27 +151,29 @@
             if (this.bulletsToFire > 0) {
                 this.fireBullet();
             }
-            this.setNewDestination();
+            else {
+                this.setNewDestination();
+            }
         }
 
         private setNewDestination(): void {
-            this.bulletsToFire = Math.floor(Math.random() * 3) + 1;
+            this.bulletsToFire = Math.floor(Math.random() * 4) + 1;
             if (MechLib.isRebels(this.faction)) {
                 this.destination = new Phaser.Point(
                     Math.floor(Math.random() * this.game.world.width * 0.25) + 1,
-                    Math.floor(Math.random() * this.game.world.height - 1) + 1
+                    Math.floor(Math.random() * (this.game.world.height - 100)) + 40
                 );
             } else {
                 this.destination = new Phaser.Point(
                     Math.floor(this.game.world.width * 0.75 + Math.random() * this.game.world.width * 0.25),
-                    Math.floor(Math.random() * this.game.world.height - 1) + 1
+                    Math.floor(Math.random() * (this.game.world.height - 100)) + 40
                 );
             }
         }
 
         private fireBullet(): Bullet {
-            let bulletSpeed: number = 400;
-            let bulletDelay: number = 200;
+            let bulletSpeed: number = 600;
+            let bulletDelay: number = 400;
 
             // to avoid them being allowed to fire too fast we set a time limit
             if (this.game.time.now > this.bulletTime) {
