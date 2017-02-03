@@ -372,6 +372,9 @@
         }
 
         roundNext() {
+            this.bgm.stop();
+            this.game.sound.remove(this.bgm);
+
             let leader: User = this.leader;
 
             this.timerText.text = "Round ended!";
@@ -379,8 +382,6 @@
             let leadingFactionScore: number = (this.empireScore > this.rebelsScore) ? this.empireScore : this.rebelsScore;
             let leadingFaction: string = (this.empireScore > this.rebelsScore) ? "empire" : "rebels";
 
-            this.bgm.stop();
-            this.bgm.destroy();
             this.game.state.start("RoundStart", true, false, { leader, leadingFaction, leadingFactionScore })
         }
     }

@@ -5,7 +5,7 @@ module FacebookWarGame.Client {
 
         constructor() {
             super(1280, 720, Phaser.CANVAS, "content", null);
-
+            this.forceSingleUpdate = true;
             this.state.add("Boot", Boot, false);
             this.state.add("Preloader", Preloader, false);
             this.state.add("Arena", Arena, false);
@@ -19,7 +19,7 @@ module FacebookWarGame.Client {
 //let access_token: string = '1850233771859903|UZReV_K_e2zP6w7y7xxOgfyNauU';  // PASTE HERE YOUR FACEBOOK ACCESS TOKEN
 let access_token: string = 'EAAaSxx65H78BAN1ZCSH9wWVMHLeZBh5a5follRbobXwZBLyIP2njG5dSBkZBXfDWzdPUq7PtHXeTpVzLOddEHzsB9TBo1DNN3rqDhpaNYBZBcXCkZBBfi7leBxI7ucuTlbmcJWUmxzDJqWvxUU8UyijVOHXHplZCQ8ZD'; // get here: https://smashballoon.com/custom-facebook-feed/docs/get-extended-facebook-user-access-token/
 let pageId: string = '314813142252248';                                     // PASTE HERE YOUR PAGE ID
-let postId: string = '328323027567926';                                     // PASTE HERE YOUR POST ID  
+let postId: string = '329515904115305';                                     // PASTE HERE YOUR POST ID  
 let refreshId: number = 0;
 let sharesCount: number = 0;
 let doAirRaid: boolean = false;
